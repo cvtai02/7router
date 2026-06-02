@@ -1,0 +1,23 @@
+{
+  "name": "7router",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev:app": "pnpm --filter @7router/app dev",
+    "dev:ui": "pnpm --filter @7router/ui dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "smoke": "pnpm --filter @7router/api-mcp-server smoke",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.28.0",
+    "eslint": "^9.28.0",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.33.0",
+    "vitest": "^3.2.1"
+  },
+  "packageManager": "pnpm@10.11.1"
+}
+

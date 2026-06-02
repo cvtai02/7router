@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum ProviderName {
+  CloudflareR2
+  GoogleDrive
+}
+
+model ProviderRecord {
+  id          String            @id @default(cuid())
+  name        ProviderName      @unique
+  displayName String
+  accounts    ProviderAccount[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+model ProviderAccount {
+  id                   String          @id @default(cuid())
+  providerId           String
+  provider             ProviderRecord  @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  accountName          String
+  encryptedCredentials String
+  credentialHint       String?
+  buckets              StorageBucket[]
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+
+  @@unique([providerId, accountName])
+}
+
+model StorageBucket {
+  id          String          @id @default(cuid())
+  accountId   String
+  account     ProviderAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  name        String
+  displayName String?
+  keys        StorageKey[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@unique([accountId, name])
+}
+
+model StorageKey {
+  id             String        @id @default(cuid())
+  bucketId       String
+  bucket         StorageBucket @relation(fields: [bucketId], references: [id], onDelete: Cascade)
+  key            String
+  absolutePath   String        @unique
+  itemType       String
+  sizeBytes      Int?
+  contentType    String?
+  providerFileId String?
+  checksum       String?
+  modifiedAt     DateTime?
+  lastSyncedAt   DateTime
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([bucketId, key])
+}
+
+model SyncRun {
+  id           String       @id @default(cuid())
+  absolutePath String
+  providerName ProviderName
+  accountName  String?
+  bucketName   String?
+  status       String
+  discovered   Int          @default(0)
+  inserted     Int          @default(0)
+  updated      Int          @default(0)
+  failed       Int          @default(0)
+  errorMessage String?
+  startedAt    DateTime     @default(now())
+  completedAt  DateTime?
+}
+

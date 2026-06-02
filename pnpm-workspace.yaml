@@ -1,0 +1,6 @@
+packages:
+  - "app"
+  - "ui"
+  - "api-clients"
+  - "api-mcp-server"
+

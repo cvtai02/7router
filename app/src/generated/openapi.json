@@ -1,0 +1,300 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/auth/check-token": {
+      "post": {
+        "operationId": "CheckTokenApi_check",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "CheckTokenApi"
+        ]
+      }
+    },
+    "/settings": {
+      "get": {
+        "operationId": "GetSettingsApi_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "GetSettingsApi"
+        ]
+      },
+      "put": {
+        "operationId": "UpdateSettingsApi_update",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "UpdateSettingsApi"
+        ]
+      }
+    },
+    "/settings/reload": {
+      "post": {
+        "operationId": "ReloadSettingsApi_reload",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "ReloadSettingsApi"
+        ]
+      }
+    },
+    "/providers": {
+      "get": {
+        "operationId": "ListProvidersApi_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "ListProvidersApi"
+        ]
+      }
+    },
+    "/providers/{providerName}": {
+      "get": {
+        "operationId": "GetProviderApi_get",
+        "parameters": [
+          {
+            "name": "providerName",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "GetProviderApi"
+        ]
+      }
+    },
+    "/providers/{providerName}/accounts": {
+      "get": {
+        "operationId": "ListProviderAccountsApi_accounts",
+        "parameters": [
+          {
+            "name": "providerName",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "ListProviderAccountsApi"
+        ]
+      },
+      "post": {
+        "operationId": "AddAccountApi_add",
+        "parameters": [
+          {
+            "name": "providerName",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "AddAccountApi"
+        ]
+      }
+    },
+    "/providers/{providerName}/accounts/{accountName}": {
+      "delete": {
+        "operationId": "RemoveAccountApi_remove",
+        "parameters": [
+          {
+            "name": "providerName",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "accountName",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "RemoveAccountApi"
+        ]
+      }
+    },
+    "/files/list": {
+      "get": {
+        "operationId": "ListFilesApi_list",
+        "parameters": [
+          {
+            "name": "path",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "ListFilesApi"
+        ]
+      }
+    },
+    "/files/get": {
+      "get": {
+        "operationId": "GetFileApi_get",
+        "parameters": [
+          {
+            "name": "absolutePath",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "GetFileApi"
+        ]
+      }
+    },
+    "/sync": {
+      "post": {
+        "operationId": "RunSyncApi_sync",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "RunSyncApi"
+        ]
+      }
+    },
+    "/sync/runs": {
+      "get": {
+        "operationId": "ListSyncRunsApi_runs",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "ListSyncRunsApi"
+        ]
+      }
+    },
+    "/sync/runs/{syncRunId}": {
+      "get": {
+        "operationId": "GetSyncRunApi_run",
+        "parameters": [
+          {
+            "name": "syncRunId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "GetSyncRunApi"
+        ]
+      }
+    },
+    "/synced-files": {
+      "get": {
+        "operationId": "ListSyncedFilesApi_syncedFiles",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "ListSyncedFilesApi"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "7router API",
+    "description": "Unified cloud storage management API",
+    "version": "0.1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {}
+  }
+}

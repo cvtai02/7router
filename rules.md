@@ -1,0 +1,21 @@
+# Project Rules
+
+- Do not use Docker or Docker-based setup instructions.
+- Use access-token authentication for protected API endpoints with `Authorization: Bearer <token>`.
+- Runtime settings are JSON-based. `app/settings.local.json` is local-only and must stay ignored.
+- Never commit access tokens, encryption keys, or provider credentials.
+- Provider credentials must be encrypted at rest with AES-256-GCM.
+- Do not add username/password app auth unless explicitly requested.
+- Do not add scheduled sync, queues, billing, public sharing, RBAC, or dynamic npm provider plugins for the initial version.
+- Do not add a repository layer above Prisma. Use cases may depend directly on Prisma context.
+- Controllers stay thin and call use cases.
+- Backend API route handlers must be one API per file, using `*.api.ts`.
+- Backend use cases must be one use case per file.
+- DTOs must be one DTO/type per file, with optional barrel files only for exports.
+- Provider-specific logic stays in infrastructure adapters and must not leak into controllers or use cases.
+- Shared provider contracts/enums/value objects stay in `app/src/core`.
+- The provider enum values are `CloudflareR2` and `GoogleDrive`.
+- Absolute path format is `<ProviderName>/<AccountName>/<Bucket or Folder>/<Key or file path>`.
+- Sync is manual only and accepts an `absolutePath`.
+- Documentation must be updated when folder structure, module boundaries, API contracts, DTOs, use cases, adapters, shared kernel concepts, agent rules, or handoff status change.
+- Entity classes must define and protect the constraints of that entity. Aggregates must define and protect constraints involving relationships between multiple entities.

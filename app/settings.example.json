@@ -1,0 +1,26 @@
+{
+  "server": {
+    "port": 3000,
+    "corsOrigins": ["http://localhost:5173"]
+  },
+  "auth": {
+    "accessTokens": ["replace-with-local-token"]
+  },
+  "database": {
+    "url": "file:../dev.db"
+  },
+  "encryption": {
+    "keyBase64": "replace-with-32-byte-base64-key"
+  },
+  "providers": {
+    "cloudflareR2": {
+      "enabled": true
+    },
+    "googleDrive": {
+      "enabled": true
+    }
+  },
+  "features": {
+    "manualSync": true
+  }
+}
