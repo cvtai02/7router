@@ -79,6 +79,7 @@ export function BrowserPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["sync-runs"] });
       qc.invalidateQueries({ queryKey: ["synced-files"] });
+      qc.invalidateQueries({ queryKey: ["files"] });
     },
   });
 

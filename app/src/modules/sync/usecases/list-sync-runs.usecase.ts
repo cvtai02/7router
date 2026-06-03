@@ -19,6 +19,7 @@ export class ListSyncRunsUseCase {
       discovered: run.discovered,
       inserted: run.inserted,
       updated: run.updated,
+      deleted: run.deleted,
       failed: run.failed,
       errorMessage: run.errorMessage ?? undefined,
       startedAt: run.startedAt.toISOString(),

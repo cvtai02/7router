@@ -28,12 +28,14 @@ export class RunSyncUseCase {
     let discovered = 0;
     let inserted = 0;
     let updated = 0;
+    let deleted = 0;
     let failed = 0;
 
     try {
       const provider = this.providers.resolve(parsed.providerName);
       const stack = [parsed.originalPath];
       const seen = new Set<string>();
+      const persistedPaths = new Set<string>();
 
       while (stack.length > 0) {
         const path = stack.pop()!;
@@ -48,6 +50,7 @@ export class RunSyncUseCase {
           if (!item.accountName || !item.bucketOrRootName) continue;
           try {
             const existed = await this.persistItem(item);
+            persistedPaths.add(item.absolutePath);
             if (existed) updated += 1;
             else inserted += 1;
           } catch {
@@ -56,16 +59,26 @@ export class RunSyncUseCase {
         }
       }
 
+      // Remove stale records that were not found in this sync
+      const syncedPrefix = parsed.originalPath + "/";
+      const result = await this.prisma.storageKey.deleteMany({
+        where: {
+          absolutePath: { startsWith: syncedPrefix },
+          NOT: { absolutePath: { in: [...persistedPaths] } },
+        },
+      });
+      deleted = result.count;
+
       await this.prisma.syncRun.update({
         where: { id: syncRun.id },
-        data: { status: "Completed", discovered, inserted, updated, failed, completedAt: new Date() },
+        data: { status: "Completed", discovered, inserted, updated, deleted, failed, completedAt: new Date() },
       });
-      return { syncRunId: syncRun.id, absolutePath: parsed.originalPath, status: "Completed", discovered, inserted, updated, failed };
+      return { syncRunId: syncRun.id, absolutePath: parsed.originalPath, status: "Completed", discovered, inserted, updated, deleted, failed };
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown sync error";
       await this.prisma.syncRun.update({
         where: { id: syncRun.id },
-        data: { status: "Failed", discovered, inserted, updated, failed, errorMessage: message, completedAt: new Date() },
+        data: { status: "Failed", discovered, inserted, updated, deleted, failed, errorMessage: message, completedAt: new Date() },
       });
       return {
         syncRunId: syncRun.id,
@@ -74,6 +87,7 @@ export class RunSyncUseCase {
         discovered,
         inserted,
         updated,
+        deleted,
         failed,
         errorMessage: message,
       };

@@ -37,7 +37,7 @@ export class AccessTokenGuard implements CanActivate {
     const policy = this.reflector.getAllAndOverride<string | undefined>(POLICY_KEY, [context.getHandler(), context.getClass()]);
     if (policy !== "client-api") throw new ForbiddenException("This endpoint requires admin access.");
 
-    const path = request.query.path ?? request.query.absolutePath ?? request.body?.absolutePath ?? request.body?.parentPath ?? request.body?.accountPath;
+    const path = request.query.path ?? request.query.absolutePath ?? request.body?.path ?? request.body?.absolutePath ?? request.body?.parentPath ?? request.body?.accountPath;
     if (!path) throw new ForbiddenException("Path required for client token access.");
 
     const accessOverride = this.reflector.getAllAndOverride<string | undefined>(ACCESS_OVERRIDE_KEY, [context.getHandler(), context.getClass()]);

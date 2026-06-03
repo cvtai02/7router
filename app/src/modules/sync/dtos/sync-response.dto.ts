@@ -5,6 +5,7 @@ export interface SyncResponseDto {
   discovered: number;
   inserted: number;
   updated: number;
+  deleted: number;
   failed: number;
   errorMessage?: string;
 }

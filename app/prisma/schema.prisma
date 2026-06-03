@@ -77,6 +77,7 @@ model SyncRun {
   discovered   Int          @default(0)
   inserted     Int          @default(0)
   updated      Int          @default(0)
+  deleted      Int          @default(0)
   failed       Int          @default(0)
   errorMessage String?
   startedAt    DateTime     @default(now())
