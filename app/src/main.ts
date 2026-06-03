@@ -9,7 +9,7 @@ import { SettingsService } from "./infrastructure/settings/settings.service";
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const settings = app.get(SettingsService).get();
-  app.enableCors({ origin: settings.server.corsOrigins, credentials: false });
+  app.enableCors({ origin: true, credentials: false });
 
   const config = new DocumentBuilder()
     .setTitle("7router API")
@@ -25,4 +25,3 @@ async function bootstrap() {
 }
 
 void bootstrap();
-

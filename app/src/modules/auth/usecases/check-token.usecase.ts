@@ -8,6 +8,6 @@ export class CheckTokenUseCase {
   constructor(private readonly settings: SettingsService) {}
 
   execute(input: CheckTokenRequestDto): CheckTokenResponseDto {
-    return { valid: this.settings.get().auth.accessTokens.includes(input.accessToken) };
+    return { valid: this.settings.get().auth.adminToken === input.accessToken };
   }
 }

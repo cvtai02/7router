@@ -55,6 +55,109 @@
         ]
       }
     },
+    "/settings/tokens": {
+      "get": {
+        "operationId": "TokensApi_listTokens",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "TokensApi"
+        ]
+      },
+      "post": {
+        "operationId": "TokensApi_addToken",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "TokensApi"
+        ]
+      }
+    },
+    "/settings/tokens/{id}": {
+      "delete": {
+        "operationId": "TokensApi_removeToken",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "TokensApi"
+        ]
+      }
+    },
+    "/settings/tokens/{id}/permissions": {
+      "post": {
+        "operationId": "TokensApi_addPermission",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "TokensApi"
+        ]
+      }
+    },
+    "/settings/tokens/{id}/permissions/{index}": {
+      "delete": {
+        "operationId": "TokensApi_removePermission",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "index",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "TokensApi"
+        ]
+      }
+    },
     "/providers": {
       "get": {
         "operationId": "ListProvidersApi_list",
@@ -168,20 +271,11 @@
       }
     },
     "/files/list": {
-      "get": {
+      "post": {
         "operationId": "ListFilesApi_list",
-        "parameters": [
-          {
-            "name": "path",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "responses": {
-          "200": {
+          "201": {
             "description": ""
           }
         },
@@ -191,25 +285,58 @@
       }
     },
     "/files/get": {
-      "get": {
+      "post": {
         "operationId": "GetFileApi_get",
-        "parameters": [
-          {
-            "name": "absolutePath",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "responses": {
-          "200": {
+          "201": {
             "description": ""
           }
         },
         "tags": [
           "GetFileApi"
+        ]
+      }
+    },
+    "/files/folder": {
+      "post": {
+        "operationId": "CreateFolderApi_create",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "CreateFolderApi"
+        ]
+      }
+    },
+    "/files/bucket": {
+      "post": {
+        "operationId": "CreateBucketApi_create",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "CreateBucketApi"
+        ]
+      }
+    },
+    "/files/upload": {
+      "post": {
+        "operationId": "UploadFileApi_upload",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "UploadFileApi"
         ]
       }
     },

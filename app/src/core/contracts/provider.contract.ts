@@ -11,6 +11,7 @@ export interface ProviderListItemDto {
   sizeBytes?: number;
   contentType?: string;
   modifiedAt?: string;
+  cdnUrl?: string;
 }
 
 export interface ProviderFileDto {
@@ -42,5 +43,9 @@ export interface IProvider {
   addAccount(input: AddProviderAccountDto): Promise<void>;
   removeAccount(input: RemoveProviderAccountDto): Promise<void>;
   getFile(absolutePath: string): Promise<ProviderFileDto>;
+  createFolder(parentPath: string, folderName: string): Promise<void>;
+  createBucket(accountPath: string, bucketName: string): Promise<void>;
+  uploadFile(absolutePath: string, contentBase64: string, contentType?: string): Promise<void>;
+  getBucketCdnUrl(bucketPath: string): Promise<string>;
 }
 

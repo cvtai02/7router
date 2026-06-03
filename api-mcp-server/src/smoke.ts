@@ -1,6 +1,6 @@
 import { AuthClient, FilesClient, ProvidersClient, SyncClient } from "@7router/api-clients";
 
-const baseUrl = process.env.SEVEN_ROUTER_API_BASE_URL ?? "http://localhost:3000";
+const baseUrl = process.env.SEVEN_ROUTER_API_BASE_URL ?? "http://localhost:20131";
 const accessToken = process.env.SEVEN_ROUTER_ACCESS_TOKEN ?? "dev-local-token";
 
 async function main() {
@@ -24,4 +24,3 @@ main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });
-

@@ -10,12 +10,14 @@
   },
   "dependencies": {
     "@7router/api-clients": "workspace:*",
+    "@tailwindcss/vite": "^4.3.0",
     "@tanstack/react-query": "^5.80.6",
     "@vitejs/plugin-react": "^4.5.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.57.0",
     "react-router-dom": "^7.6.1",
+    "tailwindcss": "^4.3.0",
     "zod": "^3.25.48"
   },
   "devDependencies": {
@@ -26,4 +28,3 @@
     "vitest": "^3.2.1"
   }
 }
-

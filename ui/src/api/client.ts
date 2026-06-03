@@ -7,7 +7,8 @@ import {
   SyncClient,
 } from "@7router/api-clients";
 
-const API_BASE_URL = import.meta.env.VITE_7ROUTER_API_BASE_URL ?? "http://localhost:3000";
+const API_BASE_URL =
+  import.meta.env.VITE_7ROUTER_API_BASE_URL ?? `${window.location.protocol}//${window.location.hostname}:20131`;
 const TOKEN_KEY = "7router.accessToken";
 
 export function getStoredToken(): string {
@@ -22,10 +23,22 @@ export function clearStoredToken() {
   localStorage.removeItem(TOKEN_KEY);
 }
 
+function makeFetch(): typeof fetch {
+  return async (input, init) => {
+    const res = await fetch(input, init);
+    if (res.status === 401) {
+      clearStoredToken();
+      window.location.href = "/login";
+    }
+    return res;
+  };
+}
+
 export function clients(accessToken = getStoredToken()) {
-  const options = { baseUrl: API_BASE_URL, accessToken };
+  const fetchImpl = makeFetch();
+  const options = { baseUrl: API_BASE_URL, accessToken, fetchImpl };
   return {
-    auth: new AuthClient({ baseUrl: API_BASE_URL }),
+    auth: new AuthClient({ baseUrl: API_BASE_URL, fetchImpl }),
     providers: new ProvidersClient(options),
     accounts: new AccountsClient(options),
     files: new FilesClient(options),
@@ -33,4 +46,3 @@ export function clients(accessToken = getStoredToken()) {
     settings: new SettingsClient(options),
   };
 }
-

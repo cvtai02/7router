@@ -1,10 +1,11 @@
 {
   "server": {
-    "port": 3000,
-    "corsOrigins": ["http://localhost:5173"]
+    "port": 20131,
+    "corsOrigins": ["*"]
   },
   "auth": {
-    "accessTokens": ["replace-with-local-token"]
+    "adminToken": "replace-with-admin-token",
+    "accessTokens": []
   },
   "database": {
     "url": "file:../dev.db"

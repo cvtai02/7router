@@ -11,5 +11,6 @@ export interface ProviderListItemDto {
   sizeBytes?: number;
   contentType?: string;
   modifiedAt?: string;
+  cdnUrl?: string;
 }
 

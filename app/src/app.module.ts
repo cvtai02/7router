@@ -11,9 +11,15 @@ import { CheckTokenApi } from "./modules/auth/controllers/check-token.api";
 import { CheckTokenUseCase } from "./modules/auth/usecases/check-token.usecase";
 import { GetSettingsApi } from "./modules/settings/controllers/get-settings.api";
 import { ReloadSettingsApi } from "./modules/settings/controllers/reload-settings.api";
+import { TokensApi } from "./modules/settings/controllers/tokens.api";
 import { UpdateSettingsApi } from "./modules/settings/controllers/update-settings.api";
+import { AddTokenUseCase } from "./modules/settings/usecases/add-token.usecase";
 import { GetSettingsUseCase } from "./modules/settings/usecases/get-settings.usecase";
+import { ListTokensUseCase } from "./modules/settings/usecases/list-tokens.usecase";
 import { ReloadSettingsUseCase } from "./modules/settings/usecases/reload-settings.usecase";
+import { RemoveTokenUseCase } from "./modules/settings/usecases/remove-token.usecase";
+import { AddPermissionUseCase } from "./modules/settings/usecases/add-permission.usecase";
+import { RemovePermissionUseCase } from "./modules/settings/usecases/remove-permission.usecase";
 import { UpdateSettingsUseCase } from "./modules/settings/usecases/update-settings.usecase";
 import { GetProviderApi } from "./modules/providers/controllers/get-provider.api";
 import { ListProviderAccountsApi } from "./modules/providers/controllers/list-provider-accounts.api";
@@ -25,8 +31,14 @@ import { AddAccountApi } from "./modules/accounts/controllers/add-account.api";
 import { RemoveAccountApi } from "./modules/accounts/controllers/remove-account.api";
 import { AddAccountUseCase } from "./modules/accounts/usecases/add-account.usecase";
 import { RemoveAccountUseCase } from "./modules/accounts/usecases/remove-account.usecase";
+import { CreateBucketApi } from "./modules/files/controllers/create-bucket.api";
+import { CreateFolderApi } from "./modules/files/controllers/create-folder.api";
+import { UploadFileApi } from "./modules/files/controllers/upload-file.api";
 import { GetFileApi } from "./modules/files/controllers/get-file.api";
 import { ListFilesApi } from "./modules/files/controllers/list-files.api";
+import { CreateBucketUseCase } from "./modules/files/usecases/create-bucket.usecase";
+import { CreateFolderUseCase } from "./modules/files/usecases/create-folder.usecase";
+import { UploadFileUseCase } from "./modules/files/usecases/upload-file.usecase";
 import { GetFileUseCase } from "./modules/files/usecases/get-file.usecase";
 import { ListFilesUseCase } from "./modules/files/usecases/list-files.usecase";
 import { GetSyncRunApi } from "./modules/sync/controllers/get-sync-run.api";
@@ -44,6 +56,7 @@ import { RunSyncUseCase } from "./modules/sync/usecases/run-sync.usecase";
     GetSettingsApi,
     UpdateSettingsApi,
     ReloadSettingsApi,
+    TokensApi,
     ListProvidersApi,
     GetProviderApi,
     ListProviderAccountsApi,
@@ -51,6 +64,9 @@ import { RunSyncUseCase } from "./modules/sync/usecases/run-sync.usecase";
     RemoveAccountApi,
     ListFilesApi,
     GetFileApi,
+    CreateFolderApi,
+    CreateBucketApi,
+    UploadFileApi,
     RunSyncApi,
     ListSyncRunsApi,
     GetSyncRunApi,
@@ -67,6 +83,11 @@ import { RunSyncUseCase } from "./modules/sync/usecases/run-sync.usecase";
     GetSettingsUseCase,
     UpdateSettingsUseCase,
     ReloadSettingsUseCase,
+    ListTokensUseCase,
+    AddTokenUseCase,
+    RemoveTokenUseCase,
+    AddPermissionUseCase,
+    RemovePermissionUseCase,
     ListProvidersUseCase,
     GetProviderUseCase,
     ListProviderAccountsUseCase,
@@ -74,6 +95,9 @@ import { RunSyncUseCase } from "./modules/sync/usecases/run-sync.usecase";
     RemoveAccountUseCase,
     ListFilesUseCase,
     GetFileUseCase,
+    CreateFolderUseCase,
+    CreateBucketUseCase,
+    UploadFileUseCase,
     RunSyncUseCase,
     ListSyncRunsUseCase,
     GetSyncRunUseCase,

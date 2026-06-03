@@ -8,7 +8,7 @@ export class BaseClient {
   constructor(options: SevenRouterClientOptions) {
     this.baseUrl = options.baseUrl.replace(/\/$/, "");
     this.accessToken = options.accessToken;
-    this.fetchImpl = options.fetchImpl ?? fetch;
+    this.fetchImpl = options.fetchImpl ?? globalThis.fetch.bind(globalThis);
   }
 
   protected async request<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -18,6 +18,9 @@ export class BaseClient {
     const response = await this.fetchImpl(`${this.baseUrl}${path}`, { ...init, headers });
     if (!response.ok) {
       throw new Error(`${response.status} ${response.statusText}: ${await response.text()}`);
+    }
+    if (response.status === 204 || response.headers.get("content-length") === "0") {
+      return undefined as T;
     }
     return (await response.json()) as T;
   }
@@ -31,4 +34,3 @@ export class BaseClient {
     return value ? `?${value}` : "";
   }
 }
-

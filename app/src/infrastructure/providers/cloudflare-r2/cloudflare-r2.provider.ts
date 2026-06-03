@@ -1,8 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import {
+  CreateBucketCommand,
   GetObjectCommand,
   ListBucketsCommand,
   ListObjectsV2Command,
+  PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
 import { ProviderName } from "../../../core/enums/provider-name.enum";
@@ -136,6 +138,51 @@ export class CloudflareR2Provider implements IProvider {
     await this.prisma.providerAccount.deleteMany({
       where: { accountName: input.accountName, provider: { name: this.providerName } },
     });
+  }
+
+  async createBucket(accountPath: string, bucketName: string): Promise<void> {
+    const parsed = ProviderAbsolutePath.parse(accountPath);
+    if (!parsed.accountName) throw new Error("R2 bucket creation requires an account in the path.");
+    const account = await this.findAccount(parsed.accountName);
+    const client = this.createClient(this.encryption.decrypt<CloudflareR2CredentialsDto>(account.encryptedCredentials));
+    await client.send(new CreateBucketCommand({ Bucket: bucketName }));
+  }
+
+  async createFolder(parentPath: string, folderName: string): Promise<void> {
+    const parsed = ProviderAbsolutePath.parse(parentPath);
+    if (!parsed.accountName || !parsed.bucketOrRootName) {
+      throw new Error("R2 folder creation requires account and bucket in the path.");
+    }
+    const account = await this.findAccount(parsed.accountName);
+    const client = this.createClient(this.encryption.decrypt<CloudflareR2CredentialsDto>(account.encryptedCredentials));
+    const key = parsed.keyOrPath ? `${parsed.keyOrPath}/${folderName}/` : `${folderName}/`;
+    await client.send(new PutObjectCommand({ Bucket: parsed.bucketOrRootName, Key: key, Body: "" }));
+  }
+
+  async uploadFile(absolutePath: string, contentBase64: string, contentType?: string): Promise<void> {
+    const parsed = ProviderAbsolutePath.parse(absolutePath);
+    if (!parsed.accountName || !parsed.bucketOrRootName || !parsed.keyOrPath) {
+      throw new Error("R2 upload path must include account, bucket, and key.");
+    }
+    const account = await this.findAccount(parsed.accountName);
+    const client = this.createClient(this.encryption.decrypt<CloudflareR2CredentialsDto>(account.encryptedCredentials));
+    await client.send(new PutObjectCommand({
+      Bucket: parsed.bucketOrRootName,
+      Key: parsed.keyOrPath,
+      Body: Buffer.from(contentBase64, "base64"),
+      ContentType: contentType,
+    }));
+  }
+
+  async getBucketCdnUrl(bucketPath: string): Promise<string> {
+    const parsed = ProviderAbsolutePath.parse(bucketPath);
+    if (!parsed.accountName || !parsed.bucketOrRootName) {
+      throw new Error("R2 CDN URL requires account and bucket in the path.");
+    }
+    const account = await this.findAccount(parsed.accountName);
+    const credentials = this.encryption.decrypt<CloudflareR2CredentialsDto>(account.encryptedCredentials);
+    const base = credentials.endpoint ?? `https://${credentials.accountId}.r2.cloudflarestorage.com`;
+    return `${base}/${parsed.bucketOrRootName}`;
   }
 
   async getFile(absolutePath: string): Promise<ProviderFileDto> {

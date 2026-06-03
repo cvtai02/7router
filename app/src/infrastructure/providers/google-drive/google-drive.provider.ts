@@ -127,6 +127,49 @@ export class GoogleDriveProvider implements IProvider {
     });
   }
 
+  async createBucket(_accountPath: string, _bucketName: string): Promise<void> {
+    throw new Error("Creating shared drives is not supported.");
+  }
+
+  async uploadFile(absolutePath: string, contentBase64: string, contentType?: string): Promise<void> {
+    const parsed = ProviderAbsolutePath.parse(absolutePath);
+    if (!parsed.accountName || !parsed.bucketOrRootName || !parsed.keyOrPath) {
+      throw new Error("Google Drive upload path must include account, root, and file path.");
+    }
+    const account = await this.findAccount(parsed.accountName);
+    const drive = this.createDrive(this.encryption.decrypt<GoogleDriveCredentialsDto>(account.encryptedCredentials));
+    const segments = parsed.keyOrPath.split("/");
+    const fileName = segments.pop()!;
+    const parentId = await this.resolveFolderId(drive, parsed.bucketOrRootName, segments.join("/") || undefined);
+    await drive.files.create({
+      requestBody: { name: fileName, parents: [parentId] },
+      media: { mimeType: contentType ?? "application/octet-stream", body: Buffer.from(contentBase64, "base64") },
+      supportsAllDrives: true,
+    });
+  }
+
+  async getBucketCdnUrl(_bucketPath: string): Promise<string> {
+    throw new Error("Google Drive does not support CDN URLs.");
+  }
+
+  async createFolder(parentPath: string, folderName: string): Promise<void> {
+    const parsed = ProviderAbsolutePath.parse(parentPath);
+    if (!parsed.accountName || !parsed.bucketOrRootName) {
+      throw new Error("Google Drive folder creation requires account and root in the path.");
+    }
+    const account = await this.findAccount(parsed.accountName);
+    const drive = this.createDrive(this.encryption.decrypt<GoogleDriveCredentialsDto>(account.encryptedCredentials));
+    const parentId = await this.resolveFolderId(drive, parsed.bucketOrRootName, parsed.keyOrPath);
+    await drive.files.create({
+      requestBody: {
+        name: folderName,
+        mimeType: "application/vnd.google-apps.folder",
+        parents: [parentId],
+      },
+      supportsAllDrives: true,
+    });
+  }
+
   async getFile(absolutePath: string): Promise<ProviderFileDto> {
     const parsed = ProviderAbsolutePath.parse(absolutePath);
     if (!parsed.accountName || !parsed.bucketOrRootName || !parsed.keyOrPath) {
