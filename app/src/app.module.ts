@@ -36,6 +36,8 @@ import { CreateFolderApi } from "./modules/files/controllers/create-folder.api";
 import { UploadFileApi } from "./modules/files/controllers/upload-file.api";
 import { GetFileApi } from "./modules/files/controllers/get-file.api";
 import { ListFilesApi } from "./modules/files/controllers/list-files.api";
+import { ListAllFilesApi } from "./modules/files/controllers/list-all-files.api";
+import { ListAllFilesUseCase } from "./modules/files/usecases/list-all-files.usecase";
 import { CreateBucketUseCase } from "./modules/files/usecases/create-bucket.usecase";
 import { CreateFolderUseCase } from "./modules/files/usecases/create-folder.usecase";
 import { UploadFileUseCase } from "./modules/files/usecases/upload-file.usecase";
@@ -63,6 +65,7 @@ import { RunSyncUseCase } from "./modules/sync/usecases/run-sync.usecase";
     AddAccountApi,
     RemoveAccountApi,
     ListFilesApi,
+    ListAllFilesApi,
     GetFileApi,
     CreateFolderApi,
     CreateBucketApi,
@@ -94,6 +97,7 @@ import { RunSyncUseCase } from "./modules/sync/usecases/run-sync.usecase";
     AddAccountUseCase,
     RemoveAccountUseCase,
     ListFilesUseCase,
+    ListAllFilesUseCase,
     GetFileUseCase,
     CreateFolderUseCase,
     CreateBucketUseCase,

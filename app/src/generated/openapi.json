@@ -284,6 +284,20 @@
         ]
       }
     },
+    "/files/all": {
+      "post": {
+        "operationId": "ListAllFilesApi_listAll",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "ListAllFilesApi"
+        ]
+      }
+    },
     "/files/get": {
       "post": {
         "operationId": "GetFileApi_get",

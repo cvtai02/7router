@@ -29,6 +29,10 @@ export class FilesClient extends BaseClient {
     });
   }
 
+  listAll(path: string): Promise<ListFilesResponseDto> {
+    return this.request("/files/all", { method: "POST", body: JSON.stringify({ path }) });
+  }
+
   uploadFile(absolutePath: string, contentBase64: string, contentType?: string): Promise<void> {
     return this.request("/files/upload", {
       method: "POST",

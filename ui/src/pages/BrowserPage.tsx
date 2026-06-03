@@ -3,6 +3,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { clients } from "../api/client";
 
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve((reader.result as string).split(",")[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 function formatSize(bytes: number | null | undefined): string {
   if (!bytes) return "—";
   if (bytes < 1024) return `${bytes} B`;
@@ -46,6 +55,7 @@ export function BrowserPage() {
   const [newFolderName, setNewFolderName] = useState("");
   const [showNewFolder, setShowNewFolder] = useState(false);
   const folderInputRef = useRef<HTMLInputElement>(null);
+  const uploadInputRef = useRef<HTMLInputElement>(null);
   const qc = useQueryClient();
 
   const listing = useQuery({
@@ -71,6 +81,18 @@ export function BrowserPage() {
       qc.invalidateQueries({ queryKey: ["files", path] });
       setNewFolderName("");
       setShowNewFolder(false);
+    },
+  });
+
+  const upload = useMutation({
+    mutationFn: async (file: File) => {
+      const contentBase64 = await fileToBase64(file);
+      const absolutePath = `${path}/${file.name}`;
+      return clients().files.uploadFile(absolutePath, contentBase64, file.type || undefined);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["files", path] });
+      if (uploadInputRef.current) uploadInputRef.current.value = "";
     },
   });
 
@@ -191,6 +213,39 @@ export function BrowserPage() {
 
         {createFolder.error && (
           <p className="text-red-400 text-xs">{String(createFolder.error)}</p>
+        )}
+
+        {pathDepth >= 3 && (
+          <>
+            <input
+              ref={uploadInputRef}
+              type="file"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) upload.mutate(file);
+              }}
+            />
+            <button
+              onClick={() => uploadInputRef.current?.click()}
+              disabled={upload.isPending}
+              className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-white border border-[var(--border)] hover:border-indigo-500/50 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+              {upload.isPending ? "Uploading…" : "Upload"}
+            </button>
+            {upload.isSuccess && (
+              <span className="text-xs text-green-400 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
+                Uploaded
+              </span>
+            )}
+            {upload.error && (
+              <p className="text-red-400 text-xs">{String(upload.error)}</p>
+            )}
+          </>
         )}
 
         <button

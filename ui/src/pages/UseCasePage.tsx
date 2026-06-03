@@ -61,6 +61,31 @@ const USE_CASES: UseCaseDef[] = [
     ],
   },
   {
+    id: "list-all-files",
+    title: "List all nested files in a folder",
+    description: "Get every file at all depth levels under a given folder path. Returns a flat list of files only (no folders), reading from the synced database.",
+    method: "POST",
+    endpoint: "/files/all",
+    requestBody: {
+      path: "CloudflareR2/my-account/my-bucket/images",
+    },
+    responseBody: {
+      currentPath: "CloudflareR2/my-account/my-bucket/images",
+      items: [
+        { name: "photo.jpg", absolutePath: "CloudflareR2/my-account/my-bucket/images/photo.jpg", type: "file", sizeBytes: 204800, cdnUrl: "https://<account-id>.r2.cloudflarestorage.com/my-bucket/images/photo.jpg" },
+        { name: "thumb.jpg", absolutePath: "CloudflareR2/my-account/my-bucket/images/thumbs/thumb.jpg", type: "file", sizeBytes: 10240, cdnUrl: "https://<account-id>.r2.cloudflarestorage.com/my-bucket/images/thumbs/thumb.jpg" },
+      ],
+    },
+    notes: [
+      "path format: <Provider>/<account>/<bucket>[/<folder>...]",
+      "Returns ALL files recursively — no depth limit.",
+      "Only returns files (type=file); folders are excluded.",
+      "Data is read from the local database — run a sync first to populate it.",
+      "Token must have read permission for the path.",
+      "cdnUrl is included when the provider supports it (CloudflareR2 only).",
+    ],
+  },
+  {
     id: "upload-file",
     title: "Upload a file to an absolute path",
     description: "Upload any file to a specific location in cloud storage by providing its absolute path and base64-encoded content.",
