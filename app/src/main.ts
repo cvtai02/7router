@@ -26,7 +26,9 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("docs", app, document);
-  writeFileSync(join(process.cwd(), "src/generated/openapi.json"), JSON.stringify(document, null, 2));
+  if (process.env.NODE_ENV !== "production") {
+    writeFileSync(join(process.cwd(), "src/generated/openapi.json"), JSON.stringify(document, null, 2));
+  }
 
   app.enableShutdownHooks();
 
