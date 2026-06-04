@@ -90,4 +90,4 @@ jobs:
             export GHCR_REGISTRY=${{ env.REGISTRY }}
             export GHCR_API_IMAGE=${{ env.REGISTRY }}/${{ env.REPO }}/api:latest
             export GHCR_UI_IMAGE=${{ env.REGISTRY }}/${{ env.REPO }}/ui:latest
-            ~/deploy/deploy-api.sh
+            ~/deploy/deploy-7router.sh
