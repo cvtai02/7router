@@ -5,7 +5,7 @@ import { MaskedToken, SettingsService } from "../../../infrastructure/settings/s
 export class ListTokensUseCase {
   constructor(private readonly settings: SettingsService) {}
 
-  execute(): { tokens: MaskedToken[] } {
-    return { tokens: this.settings.listTokens() };
+  async execute(): Promise<{ tokens: MaskedToken[] }> {
+    return { tokens: await this.settings.listTokens() };
   }
 }

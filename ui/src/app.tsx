@@ -97,7 +97,7 @@ function Shell() {
     <div className="min-h-screen flex bg-[var(--background)] text-[var(--foreground)]">
       <aside className="w-56 shrink-0 border-r border-[var(--border)] bg-[var(--muted)] flex flex-col">
         <div className="px-5 py-5 border-b border-[var(--border)]">
-          <span className="text-xl font-bold tracking-tight text-white">7router</span>
+          <span className="text-xl font-bold tracking-tight text-white">7Router</span>
           <p className="text-xs text-gray-500 mt-0.5">Storage Gateway</p>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1">

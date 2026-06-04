@@ -1,7 +1,6 @@
 import { FormEvent, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ProviderName } from "@7router/api-clients";
-import { clients } from "../api/client";
+import { clients, ProviderName } from "../api/client";
 
 const PROVIDERS = [
   { value: ProviderName.CloudflareR2, label: "Cloudflare R2" },
@@ -14,7 +13,7 @@ type GDFields = { accessToken: string; refreshToken: string; clientId: string; c
 const emptyR2: R2Fields = { accountId: "", accessKeyId: "", secretAccessKey: "", endpoint: "", region: "" };
 const emptyGD: GDFields = { accessToken: "", refreshToken: "", clientId: "", clientSecret: "", accountEmail: "" };
 
-function buildCredentials(provider: ProviderName, r2: R2Fields, gd: GDFields): object {
+function buildCredentials(provider: ProviderName, r2: R2Fields, gd: GDFields): Record<string, unknown> {
   if (provider === ProviderName.CloudflareR2) {
     const creds: Record<string, string> = {
       accountId: r2.accountId,

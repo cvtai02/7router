@@ -1,4 +1,1 @@
-import { RuntimeSettings } from "../../../infrastructure/settings/settings.service";
-
-export type SettingsResponseDto = RuntimeSettings;
-
+export type SettingsResponseDto = Record<string, never>;

@@ -1,6 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
-import { SettingsService } from "../settings/settings.service";
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 
 interface EncryptedSecretEnvelope {
   version: 1;
@@ -12,8 +11,6 @@ interface EncryptedSecretEnvelope {
 
 @Injectable()
 export class CredentialEncryptionService {
-  constructor(private readonly settings: SettingsService) {}
-
   encrypt(value: unknown): string {
     const key = this.getKey();
     const iv = randomBytes(12);
@@ -45,11 +42,8 @@ export class CredentialEncryptionService {
   }
 
   private getKey(): Buffer {
-    const key = Buffer.from(this.settings.get().encryption.keyBase64, "base64");
-    if (key.length !== 32) {
-      throw new Error("Encryption key must decode to exactly 32 bytes.");
-    }
-    return key;
+    const secret = process.env.SYSTEM_SECRET ?? "";
+    if (!secret) throw new Error("SYSTEM_SECRET is not set.");
+    return createHash("sha256").update(secret, "utf8").digest();
   }
 }
-

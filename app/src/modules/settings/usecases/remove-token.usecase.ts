@@ -5,7 +5,7 @@ import { MaskedToken, SettingsService } from "../../../infrastructure/settings/s
 export class RemoveTokenUseCase {
   constructor(private readonly settings: SettingsService) {}
 
-  execute(id: string): { tokens: MaskedToken[] } {
-    return { tokens: this.settings.removeToken(id) };
+  async execute(id: string): Promise<{ tokens: MaskedToken[] }> {
+    return { tokens: await this.settings.removeToken(id) };
   }
 }

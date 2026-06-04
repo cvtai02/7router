@@ -34,7 +34,7 @@ export function DashboardPage() {
     <div className="p-8 flex flex-col gap-8 min-h-full">
       <div>
         <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-        <p className="text-sm text-gray-500 mt-1">7router running on localhost:20132</p>
+        <p className="text-sm text-gray-500 mt-1">7Router running on localhost:20132</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

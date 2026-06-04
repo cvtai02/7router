@@ -36,6 +36,7 @@ export class RunSyncUseCase {
       const stack = [parsed.originalPath];
       const seen = new Set<string>();
       const persistedPaths = new Set<string>();
+      const seenBucketIds = new Set<string>();
 
       while (stack.length > 0) {
         const path = stack.pop()!;
@@ -49,8 +50,9 @@ export class RunSyncUseCase {
           }
           if (!item.accountName || !item.bucketOrRootName) continue;
           try {
-            const existed = await this.persistItem(item);
+            const { existed, bucketId } = await this.persistItem(item);
             persistedPaths.add(item.absolutePath);
+            if (bucketId) seenBucketIds.add(bucketId);
             if (existed) updated += 1;
             else inserted += 1;
           } catch {
@@ -59,15 +61,47 @@ export class RunSyncUseCase {
         }
       }
 
-      // Remove stale records that were not found in this sync
+      // Remove stale StorageKey records not found in this sync
       const syncedPrefix = parsed.originalPath + "/";
-      const result = await this.prisma.storageKey.deleteMany({
+      const keyResult = await this.prisma.storageKey.deleteMany({
         where: {
           absolutePath: { startsWith: syncedPrefix },
           NOT: { absolutePath: { in: [...persistedPaths] } },
         },
       });
-      deleted = result.count;
+      deleted += keyResult.count;
+
+      // Remove stale StorageBucket records when syncing at account or provider level
+      if (!parsed.bucketOrRootName) {
+        const bucketWhere = seenBucketIds.size > 0
+          ? { NOT: { id: { in: [...seenBucketIds] } } }
+          : {};
+
+        if (parsed.accountName) {
+          // Scoped to one account
+          const providerRecord = await this.prisma.providerRecord.findUnique({ where: { name: parsed.providerName } });
+          if (providerRecord) {
+            const account = await this.prisma.providerAccount.findUnique({
+              where: { providerId_accountName: { providerId: providerRecord.id, accountName: parsed.accountName } },
+            });
+            if (account) {
+              const bucketResult = await this.prisma.storageBucket.deleteMany({
+                where: { accountId: account.id, ...bucketWhere },
+              });
+              deleted += bucketResult.count;
+            }
+          }
+        } else {
+          // Provider-level sync — scope to all accounts of this provider
+          const providerRecord = await this.prisma.providerRecord.findUnique({ where: { name: parsed.providerName } });
+          if (providerRecord) {
+            const bucketResult = await this.prisma.storageBucket.deleteMany({
+              where: { account: { providerId: providerRecord.id }, ...bucketWhere },
+            });
+            deleted += bucketResult.count;
+          }
+        }
+      }
 
       await this.prisma.syncRun.update({
         where: { id: syncRun.id },
@@ -80,21 +114,11 @@ export class RunSyncUseCase {
         where: { id: syncRun.id },
         data: { status: "Failed", discovered, inserted, updated, deleted, failed, errorMessage: message, completedAt: new Date() },
       });
-      return {
-        syncRunId: syncRun.id,
-        absolutePath: parsed.originalPath,
-        status: "Failed",
-        discovered,
-        inserted,
-        updated,
-        deleted,
-        failed,
-        errorMessage: message,
-      };
+      return { syncRunId: syncRun.id, absolutePath: parsed.originalPath, status: "Failed", discovered, inserted, updated, deleted, failed, errorMessage: message };
     }
   }
 
-  private async persistItem(item: ProviderListItemDto): Promise<boolean> {
+  private async persistItem(item: ProviderListItemDto): Promise<{ existed: boolean; bucketId: string }> {
     const provider = await this.prisma.providerRecord.upsert({
       where: { name: item.providerName },
       update: {},
@@ -106,7 +130,7 @@ export class RunSyncUseCase {
     const account = await this.prisma.providerAccount.findUnique({
       where: { providerId_accountName: { providerId: provider.id, accountName: item.accountName! } },
     });
-    if (!account) return false;
+    if (!account) return { existed: false, bucketId: "" };
     const bucket = await this.prisma.storageBucket.upsert({
       where: { accountId_name: { accountId: account.id, name: item.bucketOrRootName! } },
       update: {},
@@ -134,7 +158,6 @@ export class RunSyncUseCase {
         lastSyncedAt: new Date(),
       },
     });
-    return Boolean(existing);
+    return { existed: Boolean(existing), bucketId: bucket.id };
   }
 }
-

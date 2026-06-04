@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { APP_GUARD } from "@nestjs/core";
+import { APP_GUARD, Reflector } from "@nestjs/core";
 import { SettingsService } from "./infrastructure/settings/settings.service";
 import { PrismaService } from "./infrastructure/database/prisma.service";
 import { CredentialEncryptionService } from "./infrastructure/encryption/credential-encryption.service";
@@ -43,6 +43,8 @@ import { CreateFolderUseCase } from "./modules/files/usecases/create-folder.usec
 import { UploadFileUseCase } from "./modules/files/usecases/upload-file.usecase";
 import { GetFileUseCase } from "./modules/files/usecases/get-file.usecase";
 import { ListFilesUseCase } from "./modules/files/usecases/list-files.usecase";
+import { GetAccessibleDirectoriesApi } from "./modules/access/controllers/get-accessible-directories.api";
+import { GetAccessibleDirectoriesUseCase } from "./modules/access/usecases/get-accessible-directories.usecase";
 import { GetSyncRunApi } from "./modules/sync/controllers/get-sync-run.api";
 import { ListSyncedFilesApi } from "./modules/sync/controllers/list-synced-files.api";
 import { ListSyncRunsApi } from "./modules/sync/controllers/list-sync-runs.api";
@@ -54,6 +56,7 @@ import { RunSyncUseCase } from "./modules/sync/usecases/run-sync.usecase";
 
 @Module({
   controllers: [
+    GetAccessibleDirectoriesApi,
     CheckTokenApi,
     GetSettingsApi,
     UpdateSettingsApi,
@@ -82,6 +85,7 @@ import { RunSyncUseCase } from "./modules/sync/usecases/run-sync.usecase";
     CloudflareR2Provider,
     GoogleDriveProvider,
     ProviderRegistryService,
+    GetAccessibleDirectoriesUseCase,
     CheckTokenUseCase,
     GetSettingsUseCase,
     UpdateSettingsUseCase,
@@ -106,6 +110,7 @@ import { RunSyncUseCase } from "./modules/sync/usecases/run-sync.usecase";
     ListSyncRunsUseCase,
     GetSyncRunUseCase,
     ListSyncedFilesUseCase,
+    Reflector,
     { provide: APP_GUARD, useClass: AccessTokenGuard },
   ],
 })

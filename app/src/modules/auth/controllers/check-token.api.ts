@@ -10,7 +10,7 @@ export class CheckTokenApi {
 
   @PublicRoute()
   @Post("check-token")
-  check(@Body() body: CheckTokenRequestDto): CheckTokenResponseDto {
+  check(@Body() body: CheckTokenRequestDto): Promise<CheckTokenResponseDto> {
     return this.checkToken.execute(body);
   }
 }

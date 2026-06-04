@@ -86,6 +86,26 @@ const USE_CASES: UseCaseDef[] = [
     ],
   },
   {
+    id: "get-accessible-directories",
+    title: "Get accessible directories",
+    description: "Returns the list of paths the current access token is permitted to access, along with the access level for each. Admin tokens return isAdmin: true with an empty directories array (full access).",
+    method: "GET",
+    endpoint: "/access/directories",
+    responseBody: {
+      isAdmin: false,
+      directories: [
+        { path: "CloudflareR2/my-account/my-bucket", access: "read-write" },
+        { path: "GoogleDrive/my-account/reports", access: "read" },
+      ],
+    },
+    notes: [
+      "No request body — identity is derived from the Bearer token.",
+      "Admin tokens (SYSTEM_SECRET) return { isAdmin: true, directories: [] } — they have unrestricted access.",
+      "Client tokens return the exact path permissions configured in Settings → Access Tokens.",
+      "Use this endpoint to discover what paths are available before calling /files/list or /files/all.",
+    ],
+  },
+  {
     id: "upload-file",
     title: "Upload a file to an absolute path",
     description: "Upload any file to a specific location in cloud storage by providing its absolute path and base64-encoded content.",
@@ -181,7 +201,7 @@ function downloadAll() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "7router-usecases.md";
+  a.download = "7Router-usecases.md";
   a.click();
   URL.revokeObjectURL(url);
 }

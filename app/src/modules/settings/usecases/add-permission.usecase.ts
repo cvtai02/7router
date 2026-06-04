@@ -5,7 +5,7 @@ import { MaskedToken, SettingsService, TokenPermission } from "../../../infrastr
 export class AddPermissionUseCase {
   constructor(private readonly settings: SettingsService) {}
 
-  execute(tokenId: string, path: string, access: TokenPermission["access"]): { tokens: MaskedToken[] } {
-    return { tokens: this.settings.addPermission(tokenId, path, access) };
+  async execute(tokenId: string, path: string, access: TokenPermission["access"]): Promise<{ tokens: MaskedToken[] }> {
+    return { tokens: await this.settings.addPermission(tokenId, path, access) };
   }
 }

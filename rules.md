@@ -1,12 +1,11 @@
 # Project Rules
-
-- Do not use Docker or Docker-based setup instructions.
+- Bootstrap settings (system secret, database URL) live in `app/.env` only. Never store them in the database or commit them.
+- Runtime settings (provider enabled flags, feature flags) are stored in the database and managed from the admin System Config page.
 - Use access-token authentication for protected API endpoints with `Authorization: Bearer <token>`.
-- Runtime settings are JSON-based. `app/settings.local.json` is local-only and must stay ignored.
-- Never commit access tokens, encryption keys, or provider credentials.
-- Provider credentials must be encrypted at rest with AES-256-GCM.
+- `SYSTEM_SECRET` env var serves two purposes: it is the admin login credential and the source of the AES-256-GCM encryption key (derived via SHA-256).
+- Provider credentials must be encrypted at rest with AES-256-GCM; key is `SHA-256(SYSTEM_SECRET)` — no separate key env var.
 - Do not add username/password app auth unless explicitly requested.
-- Do not add scheduled sync, queues, billing, public sharing, RBAC, or dynamic npm provider plugins for the initial version.
+- Do not add scheduled sync, queues, billing, public sharing, or dynamic npm provider plugins for the initial version.
 - Do not add a repository layer above Prisma. Use cases may depend directly on Prisma context.
 - Controllers stay thin and call use cases.
 - Backend API route handlers must be one API per file, using `*.api.ts`.
@@ -17,5 +16,6 @@
 - The provider enum values are `CloudflareR2` and `GoogleDrive`.
 - Absolute path format is `<ProviderName>/<AccountName>/<Bucket or Folder>/<Key or file path>`.
 - Sync is manual only and accepts an `absolutePath`.
+- CORS must allow all origins, methods, and headers.
 - Documentation must be updated when folder structure, module boundaries, API contracts, DTOs, use cases, adapters, shared kernel concepts, agent rules, or handoff status change.
 - Entity classes must define and protect the constraints of that entity. Aggregates must define and protect constraints involving relationships between multiple entities.

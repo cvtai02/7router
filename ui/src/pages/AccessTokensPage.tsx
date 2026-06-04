@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { clients } from "../api/client";
-import type { MaskedToken, TokenPermission } from "@7router/api-clients";
+import { clients, MaskedToken, TokenPermission } from "../api/client";
 
 function generateToken(): string {
   const id = new Uint8Array(4);
@@ -12,15 +11,10 @@ function generateToken(): string {
   return `${hex(id)}.${hex(secret)}`;
 }
 
-function tokenIdFromValue(maskedValue: string): string {
-  const dot = maskedValue.indexOf(".");
-  return dot >= 0 ? maskedValue.slice(0, dot) : maskedValue;
-}
-
 function AccessLabel({ access }: { access: TokenPermission["access"] }) {
   const map = {
-    "read": "bg-blue-500/15 text-blue-400 border-blue-500/30",
-    "write": "bg-orange-500/15 text-orange-400 border-orange-500/30",
+    read: "bg-blue-500/15 text-blue-400 border-blue-500/30",
+    write: "bg-orange-500/15 text-orange-400 border-orange-500/30",
     "read-write": "bg-purple-500/15 text-purple-400 border-purple-500/30",
   };
   return (
@@ -34,12 +28,12 @@ function PermissionsPanel({ token }: { token: MaskedToken }) {
   const qc = useQueryClient();
 
   const addPerm = useMutation({
-    mutationFn: () => clients().settings.addPermission(tokenIdFromValue(token.value), path.trim(), access),
+    mutationFn: () => clients().settings.addPermission(token.id, path.trim(), access),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["tokens"] }); setPath(""); },
   });
 
   const removePerm = useMutation({
-    mutationFn: (index: number) => clients().settings.removePermission(tokenIdFromValue(token.value), index),
+    mutationFn: (index: number) => clients().settings.removePermission(token.id, index),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["tokens"] }),
   });
 
@@ -97,8 +91,66 @@ function PermissionsPanel({ token }: { token: MaskedToken }) {
   );
 }
 
+function BannerCopy({ token, onDismiss }: { token: { name: string; value: string }; onDismiss: () => void }) {
+  const [copied, setCopied] = useState(false);
+  function copy() {
+    navigator.clipboard.writeText(token.value).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+  return (
+    <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 space-y-3">
+      <div className="flex items-start gap-3">
+        <svg className="w-4 h-4 text-green-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+        <p className="flex-1 text-sm text-green-400 font-medium">
+          Token <span className="font-bold">{token.name}</span> created — copy it now, it won't be shown again.
+        </p>
+        <button onClick={onDismiss} className="text-gray-500 hover:text-white transition-colors shrink-0">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div className="flex items-center gap-3 bg-black/30 border border-green-500/20 rounded-lg px-3 py-2">
+        <code className="flex-1 text-xs text-green-300 font-mono break-all select-all">{token.value}</code>
+        <button
+          onClick={copy}
+          className={`shrink-0 text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors ${
+            copied
+              ? "bg-green-500/20 border-green-500/40 text-green-300"
+              : "bg-indigo-600 hover:bg-indigo-500 border-indigo-500 text-white"
+          }`}
+        >
+          {copied ? "Copied!" : "Copy"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function TokenRow({ token, onRevoke }: { token: MaskedToken; onRevoke: () => void }) {
   const [expanded, setExpanded] = useState(false);
+  const [revealed, setRevealed] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [revealing, setRevealing] = useState(false);
+
+  async function reveal(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (revealed) {
+      navigator.clipboard.writeText(revealed).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
+      return;
+    }
+    setRevealing(true);
+    try {
+      const { value } = await clients().settings.revealToken(token.id);
+      setRevealed(value);
+    } finally {
+      setRevealing(false);
+    }
+  }
 
   return (
     <div className="border-b border-[var(--border)] last:border-0">
@@ -115,8 +167,15 @@ function TokenRow({ token, onRevoke }: { token: MaskedToken; onRevoke: () => voi
         <div className="flex-1 min-w-0">
           <span className="text-sm text-white font-medium">{token.name}</span>
         </div>
-        <span className="text-xs font-mono text-gray-500">{token.value}</span>
+        <span className="text-xs font-mono text-gray-500">{revealed ?? token.value}</span>
         <span className="text-xs text-gray-600">{token.permissions.length} permission{token.permissions.length !== 1 ? "s" : ""}</span>
+        <button
+          onClick={reveal}
+          disabled={revealing}
+          className="text-xs text-indigo-400 hover:text-indigo-300 px-3 py-1.5 rounded-lg border border-indigo-500/30 hover:border-indigo-400/50 transition-colors disabled:opacity-50"
+        >
+          {revealing ? "…" : revealed ? (copied ? "Copied!" : "Copy") : "Reveal"}
+        </button>
         <button
           onClick={(e) => { e.stopPropagation(); onRevoke(); }}
           className="text-xs text-red-400 hover:text-red-300 px-3 py-1.5 rounded-lg border border-red-500/30 hover:border-red-400/50 transition-colors"
@@ -176,28 +235,7 @@ export function AccessTokensPage() {
       </div>
 
       {justCreated && (
-        <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 flex items-start gap-3">
-          <svg className="w-4 h-4 text-green-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-          </svg>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm text-green-400 font-medium">
-              Token <span className="font-bold">{justCreated.name}</span> created — copy it now, it won't be shown again
-            </p>
-            <code className="text-xs text-green-300 font-mono break-all mt-1 block">{justCreated.value}</code>
-          </div>
-          <button
-            onClick={() => navigator.clipboard.writeText(justCreated.value)}
-            className="text-xs text-green-400 hover:text-green-300 border border-green-500/30 px-3 py-1.5 rounded-lg transition-colors shrink-0"
-          >
-            Copy
-          </button>
-          <button onClick={() => setJustCreated(null)} className="text-gray-500 hover:text-white transition-colors shrink-0">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+        <BannerCopy token={justCreated} onDismiss={() => setJustCreated(null)} />
       )}
 
       {showForm && (
@@ -241,7 +279,7 @@ export function AccessTokensPage() {
         ) : (
           <div>
             {(tokens.data?.tokens ?? []).map((token) => (
-              <TokenRow key={token.value} token={token} onRevoke={() => remove.mutate(tokenIdFromValue(token.value))} />
+              <TokenRow key={token.id} token={token} onRevoke={() => remove.mutate(token.id)} />
             ))}
           </div>
         )}

@@ -1,6 +1,20 @@
 {
   "openapi": "3.0.0",
   "paths": {
+    "/access/directories": {
+      "get": {
+        "operationId": "GetAccessibleDirectoriesApi_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "GetAccessibleDirectoriesApi"
+        ]
+      }
+    },
     "/auth/check-token": {
       "post": {
         "operationId": "CheckTokenApi_check",
@@ -73,6 +87,29 @@
         "parameters": [],
         "responses": {
           "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "TokensApi"
+        ]
+      }
+    },
+    "/settings/tokens/{id}/reveal": {
+      "get": {
+        "operationId": "TokensApi_revealToken",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
             "description": ""
           }
         },

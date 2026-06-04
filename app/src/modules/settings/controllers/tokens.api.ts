@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Inject, Param, ParseIntPipe, Post } from "@nestjs/common";
+import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { MaskedToken, TokenPermission } from "../../../infrastructure/settings/settings.service";
 import { AddTokenUseCase } from "../usecases/add-token.usecase";
 import { ListTokensUseCase } from "../usecases/list-tokens.usecase";
@@ -9,25 +10,32 @@ import { RemovePermissionUseCase } from "../usecases/remove-permission.usecase";
 @Controller("settings/tokens")
 export class TokensApi {
   constructor(
-    private readonly list: ListTokensUseCase,
-    private readonly add: AddTokenUseCase,
-    private readonly remove: RemoveTokenUseCase,
-    private readonly addPerm: AddPermissionUseCase,
-    private readonly removePerm: RemovePermissionUseCase,
+    @Inject(ListTokensUseCase) private readonly list: ListTokensUseCase,
+    @Inject(AddTokenUseCase) private readonly add: AddTokenUseCase,
+    @Inject(RemoveTokenUseCase) private readonly remove: RemoveTokenUseCase,
+    @Inject(AddPermissionUseCase) private readonly addPerm: AddPermissionUseCase,
+    @Inject(RemovePermissionUseCase) private readonly removePerm: RemovePermissionUseCase,
+    @Inject(PrismaService) private readonly prisma: PrismaService,
   ) {}
 
   @Get()
-  listTokens(): { tokens: MaskedToken[] } {
+  listTokens(): Promise<{ tokens: MaskedToken[] }> {
     return this.list.execute();
   }
 
   @Post()
-  addToken(@Body() body: { name: string; token: string }): { tokens: MaskedToken[] } {
+  addToken(@Body() body: { name: string; token: string }): Promise<{ tokens: MaskedToken[] }> {
     return this.add.execute(body.name, body.token);
   }
 
+  @Get(":id/reveal")
+  async revealToken(@Param("id") id: string): Promise<{ value: string }> {
+    const token = await this.prisma.accessToken.findUniqueOrThrow({ where: { id } });
+    return { value: token.value };
+  }
+
   @Delete(":id")
-  removeToken(@Param("id") id: string): { tokens: MaskedToken[] } {
+  removeToken(@Param("id") id: string): Promise<{ tokens: MaskedToken[] }> {
     return this.remove.execute(id);
   }
 
@@ -35,7 +43,7 @@ export class TokensApi {
   addPermission(
     @Param("id") id: string,
     @Body() body: { path: string; access: TokenPermission["access"] },
-  ): { tokens: MaskedToken[] } {
+  ): Promise<{ tokens: MaskedToken[] }> {
     return this.addPerm.execute(id, body.path, body.access);
   }
 
@@ -43,7 +51,7 @@ export class TokensApi {
   removePermission(
     @Param("id") id: string,
     @Param("index", ParseIntPipe) index: number,
-  ): { tokens: MaskedToken[] } {
+  ): Promise<{ tokens: MaskedToken[] }> {
     return this.removePerm.execute(id, index);
   }
 }
