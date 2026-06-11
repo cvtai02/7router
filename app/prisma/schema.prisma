@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -90,6 +90,15 @@ model AppSetting {
   updatedAt DateTime @updatedAt
 }
 
+model GoogleSetting {
+  id                    String   @id
+  clientId              String?
+  encryptedClientSecret String?
+  redirectUri           String?
+  uiBaseUrl             String?
+  updatedAt             DateTime @updatedAt
+}
+
 model AccessToken {
   id          String   @id @default(cuid())
   name        String
@@ -98,4 +107,3 @@ model AccessToken {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
-
