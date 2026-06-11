@@ -1,8 +1,14 @@
-name: Release
+name: Deploy (Docker → VPS)
 
 on:
   push:
-    branches: [release]
+    branches: [main]
+    paths:
+      - "app/**"
+      - "ui/**"
+      - "deploy/**"
+      - ".github/workflows/release.yml"
+  workflow_dispatch: {}
 
 env:
   REGISTRY: ghcr.io
