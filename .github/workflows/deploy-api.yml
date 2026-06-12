@@ -1,0 +1,48 @@
+name: Deploy API (SSH)
+
+# Continuous deploy for the 7router API. On push to main touching app/**, a
+# GitHub-hosted runner SSHes into the VPS (password auth via sshpass) and runs
+# deploy/remote-deploy.sh (git pull -> pnpm install -> prisma migrate deploy ->
+# build -> pm2 reload). The UI is deployed separately (Vercel).
+#
+# Required repo secrets (Settings -> Secrets and variables -> Actions):
+#   VPS_HOST      - server IP/hostname (e.g. 116.118.9.84)
+#   VPS_USER      - ssh user (e.g. root)
+#   VPS_PASSWORD  - ssh password for that user
+#   VPS_PORT      - optional, defaults to 22
+#
+# The VPS must allow password auth for this user (sshd_config:
+#   PasswordAuthentication yes, and PermitRootLogin yes if using root).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "app/**"
+      - "deploy/remote-deploy.sh"
+      - ".github/workflows/deploy-api.yml"
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-api
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy over SSH (password)
+        env:
+          VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq && sudo apt-get install -y -qq sshpass
+          PORT="${VPS_PORT:-22}"
+          sshpass -p "$VPS_PASSWORD" ssh \
+            -o StrictHostKeyChecking=accept-new \
+            -p "$PORT" "$VPS_USER@$VPS_HOST" 'bash -s' < deploy/remote-deploy.sh
