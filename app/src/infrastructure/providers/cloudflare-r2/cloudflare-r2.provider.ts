@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import {
   CreateBucketCommand,
-  GetObjectCommand,
+  HeadObjectCommand,
   ListBucketsCommand,
   ListObjectsV2Command,
   PutObjectCommand,
@@ -191,18 +191,21 @@ export class CloudflareR2Provider implements IProvider {
       throw new Error("R2 file path must include account, bucket, and key.");
     }
     const account = await this.findAccount(parsed.accountName);
-    const client = this.createClient(this.encryption.decrypt<CloudflareR2CredentialsDto>(account.encryptedCredentials));
-    const result = await client.send(new GetObjectCommand({ Bucket: parsed.bucketOrRootName, Key: parsed.keyOrPath }));
-    const body = result.Body ? Buffer.from(await result.Body.transformToByteArray()) : Buffer.alloc(0);
+    const credentials = this.encryption.decrypt<CloudflareR2CredentialsDto>(account.encryptedCredentials);
+    const client = this.createClient(credentials);
+    // Metadata only — the server does not download the object body. The client
+    // fetches the bytes directly from cdnUrl.
+    const head = await client.send(new HeadObjectCommand({ Bucket: parsed.bucketOrRootName, Key: parsed.keyOrPath }));
+    const base = credentials.endpoint ?? `https://${credentials.accountId}.r2.cloudflarestorage.com`;
     return {
       absolutePath: parsed.originalPath,
       providerName: this.providerName,
       accountName: parsed.accountName,
       bucketOrRootName: parsed.bucketOrRootName,
       keyOrPath: parsed.keyOrPath,
-      contentType: result.ContentType,
-      sizeBytes: result.ContentLength ? Number(result.ContentLength) : body.length,
-      contentBase64: body.toString("base64"),
+      contentType: head.ContentType,
+      sizeBytes: head.ContentLength ? Number(head.ContentLength) : undefined,
+      cdnUrl: `${base}/${parsed.bucketOrRootName}/${parsed.keyOrPath}`,
     };
   }
 

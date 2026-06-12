@@ -13,3 +13,5 @@ app/settings.local.json
 .env.*
 !.env.example
 
+
+.codex-run/

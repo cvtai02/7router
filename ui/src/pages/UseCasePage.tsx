@@ -16,7 +16,7 @@ interface UseCaseDef {
 const USE_CASES: UseCaseDef[] = [
   {
     id: "list-files",
-    title: "List files in a directory",
+    title: "List files & folders in a directory",
     description: "List all files and folders at a given path in cloud storage.",
     method: "POST",
     endpoint: "/files/list",
@@ -24,6 +24,7 @@ const USE_CASES: UseCaseDef[] = [
       path: "CloudflareR2/my-account/my-bucket/images",
     },
     responseBody: {
+      currentPath: "CloudflareR2/my-account/my-bucket/images",
       items: [
         { name: "photo.jpg", absolutePath: "CloudflareR2/my-account/my-bucket/images/photo.jpg", type: "file", sizeBytes: 204800, cdnUrl: "https://<account-id>.r2.cloudflarestorage.com/my-bucket/images/photo.jpg" },
         { name: "thumbs", absolutePath: "CloudflareR2/my-account/my-bucket/images/thumbs", type: "folder", cdnUrl: "https://<account-id>.r2.cloudflarestorage.com/my-bucket/images/thumbs" },
@@ -38,8 +39,8 @@ const USE_CASES: UseCaseDef[] = [
   },
   {
     id: "get-file",
-    title: "Get file details and content",
-    description: "Retrieve metadata and base64-encoded content of a specific file.",
+    title: "Get file details and download URL",
+    description: "Retrieve a file's metadata and a URL to download it directly from the provider. The server does not transfer file bytes — use the returned cdnUrl (CloudflareR2) or downloadUrl (GoogleDrive) to fetch the content yourself.",
     method: "POST",
     endpoint: "/files/get",
     requestBody: {
@@ -47,16 +48,21 @@ const USE_CASES: UseCaseDef[] = [
     },
     responseBody: {
       file: {
-        name: "photo.jpg",
         absolutePath: "CloudflareR2/my-account/my-bucket/images/photo.jpg",
-        type: "file",
-        sizeBytes: 204800,
-        contentBase64: "<base64-encoded content>",
+        providerName: "CloudflareR2",
+        accountName: "my-account",
+        bucketOrRootName: "my-bucket",
+        keyOrPath: "images/photo.jpg",
         contentType: "image/jpeg",
+        sizeBytes: 204800,
+        cdnUrl: "https://<account-id>.r2.cloudflarestorage.com/my-bucket/images/photo.jpg",
       },
     },
     notes: [
       "absolutePath format: <Provider>/<account>/<bucket>/<path>/<filename>",
+      "The server returns metadata only — it never streams the file body.",
+      "CloudflareR2 files return cdnUrl; GoogleDrive files return downloadUrl (webContentLink).",
+      "Download the bytes yourself by requesting the returned URL.",
       "Token must have read permission for the path.",
     ],
   },

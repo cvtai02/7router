@@ -339,14 +339,7 @@ export function BrowserPage() {
         <div>
           <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">File Details</h2>
           <pre className="bg-black/40 border border-[var(--border)] rounded-xl text-gray-300 text-xs p-5 overflow-auto">
-            {JSON.stringify(
-              {
-                ...file.data.file,
-                contentBase64: file.data.file.contentBase64 ? "[base64 content]" : undefined,
-              },
-              null,
-              2
-            )}
+            {JSON.stringify(file.data.file, null, 2)}
           </pre>
         </div>
       )}

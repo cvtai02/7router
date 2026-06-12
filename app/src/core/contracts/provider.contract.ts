@@ -22,7 +22,9 @@ export interface ProviderFileDto {
   keyOrPath: string;
   contentType?: string;
   sizeBytes?: number;
-  contentBase64?: string;
+  // The server does not transfer file bytes. It returns a URL the client uses to
+  // download directly from the provider: cdnUrl for R2, downloadUrl for Google Drive.
+  cdnUrl?: string;
   downloadUrl?: string;
 }
 

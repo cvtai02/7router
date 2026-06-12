@@ -178,7 +178,13 @@ export class GoogleDriveProvider implements IProvider {
     const account = await this.findAccount(parsed.accountName);
     const drive = this.createDrive(this.encryption.decrypt<GoogleDriveCredentialsDto>(account.encryptedCredentials));
     const file = await this.resolveFileByPath(drive, parsed.bucketOrRootName, parsed.keyOrPath);
-    const content = await drive.files.get({ fileId: file.id!, alt: "media", supportsAllDrives: true }, { responseType: "arraybuffer" });
+    // Metadata only — the server does not download the file body. The client
+    // fetches the bytes directly from downloadUrl (webContentLink).
+    const links = await drive.files.get({
+      fileId: file.id!,
+      fields: "webContentLink,webViewLink",
+      supportsAllDrives: true,
+    });
     return {
       absolutePath: parsed.originalPath,
       providerName: this.providerName,
@@ -187,7 +193,7 @@ export class GoogleDriveProvider implements IProvider {
       keyOrPath: parsed.keyOrPath,
       contentType: file.mimeType ?? undefined,
       sizeBytes: file.size ? Number(file.size) : undefined,
-      contentBase64: Buffer.from(content.data as ArrayBuffer).toString("base64"),
+      downloadUrl: links.data.webContentLink ?? links.data.webViewLink ?? undefined,
     };
   }
 

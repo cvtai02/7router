@@ -45,7 +45,7 @@ export interface ProviderFileDto {
   keyOrPath: string;
   contentType?: string;
   sizeBytes?: number;
-  contentBase64?: string;
+  cdnUrl?: string;
   downloadUrl?: string;
 }
 
