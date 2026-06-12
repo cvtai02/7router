@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { hashAccessTokenValue } from "../../../core/security/access-token-hash";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { TokenPermission } from "../../../infrastructure/settings/settings.service";
 
@@ -22,7 +23,7 @@ export class GetAccessibleDirectoriesUseCase {
       return { isAdmin: true, directories: [] };
     }
 
-    const token = await this.prisma.accessToken.findUnique({ where: { value: bearerToken } });
+    const token = await this.prisma.accessToken.findUnique({ where: { valueHash: hashAccessTokenValue(bearerToken) } });
     if (!token) return { isAdmin: false, directories: [] };
 
     const directories = JSON.parse(token.permissions) as AccessibleDirectory[];

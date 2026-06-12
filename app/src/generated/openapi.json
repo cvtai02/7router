@@ -276,6 +276,43 @@
         ]
       }
     },
+    "/providers/{providerName}/accounts/oauth/start": {
+      "post": {
+        "operationId": "GoogleDriveOAuthApi_start",
+        "parameters": [
+          {
+            "name": "providerName",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "GoogleDriveOAuthApi"
+        ]
+      }
+    },
+    "/providers/{providerName}/accounts/oauth/callback": {
+      "get": {
+        "operationId": "GoogleDriveOAuthApi_callback",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "GoogleDriveOAuthApi"
+        ]
+      }
+    },
     "/providers/{providerName}/accounts/{accountName}": {
       "delete": {
         "operationId": "RemoveAccountApi_remove",

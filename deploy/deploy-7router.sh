@@ -16,6 +16,7 @@ if [[ -f "$ENV_FILE" ]]; then
 fi
 
 : "${SYSTEM_SECRET:?SYSTEM_SECRET must be set in ~/deploy/.env}"
+: "${ENCRYPTION_KEY:?ENCRYPTION_KEY must be set in ~/deploy/.env}"
 : "${DATABASE_URL:?DATABASE_URL must be set in ~/deploy/.env}"
 
 # ── Config ───────────────────────────────────────────────────────────────────
@@ -40,6 +41,12 @@ docker stop "$UI_CONTAINER" 2>/dev/null || true
 docker rm   "$API_CONTAINER" 2>/dev/null || true
 docker rm   "$UI_CONTAINER"  2>/dev/null || true
 
+echo ">>> Applying database migrations"
+# On a DB created by `prisma db push` (no migration history), `migrate deploy`
+# fails with P3005; baseline the 0_init migration as applied, then retry.
+docker run --rm -e DATABASE_URL="$DATABASE_URL" "$GHCR_API_IMAGE" \
+  sh -c "npx prisma migrate deploy || (npx prisma migrate resolve --applied 0_init && npx prisma migrate deploy)"
+
 echo ">>> Starting API (port ${API_PORT})"
 docker run -d \
   --name "$API_CONTAINER" \
@@ -47,6 +54,7 @@ docker run -d \
   -p "${API_PORT}:20131" \
   -e NODE_ENV=production \
   -e SYSTEM_SECRET="$SYSTEM_SECRET" \
+  -e ENCRYPTION_KEY="$ENCRYPTION_KEY" \
   -e DATABASE_URL="$DATABASE_URL" \
   -v "${DATA_DIR}:/data" \
   "$GHCR_API_IMAGE"

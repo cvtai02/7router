@@ -80,6 +80,18 @@ Open `http://localhost:20132` and sign in with your `adminToken`.
 - **Settings** — edit runtime config
 - **Use Cases** — API documentation for external clients
 
+### Google Drive OAuth
+
+To connect Google Drive accounts from the Accounts page, save your Google OAuth client ID and client secret in **Settings**. The API stores those values in SQLite and encrypts the client secret.
+
+Use this redirect URI in Google Cloud Console:
+
+```text
+http://localhost:20131/providers/GoogleDrive/accounts/oauth/callback
+```
+
+For a VPS deployment, use the same callback path on your API domain.
+
 ## Client API
 
 External clients authenticate with a Bearer token created in the Access Tokens page. Each token has explicit path permissions (`read`, `write`, or `read-write`).

@@ -1,34 +1,25 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { clients, ProviderName } from "../api/client";
 
 const PROVIDERS = [
   { value: ProviderName.CloudflareR2, label: "Cloudflare R2" },
-  { value: ProviderName.GoogleDrive,  label: "Google Drive" },
+  { value: ProviderName.GoogleDrive, label: "Google Drive" },
 ];
 
 type R2Fields = { accountId: string; accessKeyId: string; secretAccessKey: string; endpoint: string; region: string };
-type GDFields = { accessToken: string; refreshToken: string; clientId: string; clientSecret: string; accountEmail: string };
 
 const emptyR2: R2Fields = { accountId: "", accessKeyId: "", secretAccessKey: "", endpoint: "", region: "" };
-const emptyGD: GDFields = { accessToken: "", refreshToken: "", clientId: "", clientSecret: "", accountEmail: "" };
 
-function buildCredentials(provider: ProviderName, r2: R2Fields, gd: GDFields): Record<string, unknown> {
-  if (provider === ProviderName.CloudflareR2) {
-    const creds: Record<string, string> = {
-      accountId: r2.accountId,
-      accessKeyId: r2.accessKeyId,
-      secretAccessKey: r2.secretAccessKey,
-    };
-    if (r2.endpoint) creds.endpoint = r2.endpoint;
-    if (r2.region) creds.region = r2.region;
-    return creds;
-  }
-  const creds: Record<string, string> = { accessToken: gd.accessToken };
-  if (gd.refreshToken) creds.refreshToken = gd.refreshToken;
-  if (gd.clientId) creds.clientId = gd.clientId;
-  if (gd.clientSecret) creds.clientSecret = gd.clientSecret;
-  if (gd.accountEmail) creds.accountEmail = gd.accountEmail;
+function buildR2Credentials(r2: R2Fields): Record<string, unknown> {
+  const creds: Record<string, string> = {
+    accountId: r2.accountId,
+    accessKeyId: r2.accessKeyId,
+    secretAccessKey: r2.secretAccessKey,
+  };
+  if (r2.endpoint) creds.endpoint = r2.endpoint;
+  if (r2.region) creds.region = r2.region;
   return creds;
 }
 
@@ -64,28 +55,64 @@ export function ProviderAccountsPage() {
   const [providerName, setProviderName] = useState<ProviderName>(ProviderName.CloudflareR2);
   const [accountName, setAccountName] = useState("");
   const [r2, setR2] = useState<R2Fields>(emptyR2);
-  const [gd, setGD] = useState<GDFields>(emptyGD);
   const [showForm, setShowForm] = useState(false);
+  const [oauthMessage, setOauthMessage] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
   const qc = useQueryClient();
+
+  useEffect(() => {
+    const status = searchParams.get("googleDriveOAuth");
+    if (!status) return;
+
+    const name = searchParams.get("accountName");
+    const message = searchParams.get("message");
+    setProviderName(ProviderName.GoogleDrive);
+    setOauthMessage(
+      status === "connected"
+        ? `Google Drive account${name ? ` "${name}"` : ""} connected.`
+        : message || "Google Drive connection failed.",
+    );
+    qc.invalidateQueries({ queryKey: ["accounts", ProviderName.GoogleDrive] });
+    qc.invalidateQueries({ queryKey: ["providers"] });
+    setSearchParams({});
+  }, [qc, searchParams, setSearchParams]);
 
   const accounts = useQuery({
     queryKey: ["accounts", providerName],
     queryFn: () => clients().providers.listAccounts(providerName),
   });
+  const settings = useQuery({
+    queryKey: ["settings"],
+    queryFn: () => clients().settings.getSettings(),
+  });
+  const googleOAuthReady =
+    Boolean(settings.data?.googleDriveOAuth.clientId) &&
+    Boolean(settings.data?.googleDriveOAuth.clientSecretSet);
 
   const add = useMutation({
     mutationFn: () =>
       clients().accounts.addAccount(providerName, {
         accountName,
-        credentials: buildCredentials(providerName, r2, gd),
+        credentials: buildR2Credentials(r2),
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["accounts", providerName] });
       qc.invalidateQueries({ queryKey: ["providers"] });
       setAccountName("");
       setR2(emptyR2);
-      setGD(emptyGD);
       setShowForm(false);
+    },
+  });
+
+  const startOAuth = useMutation({
+    mutationFn: () =>
+      clients().accounts.startOAuth(
+        ProviderName.GoogleDrive,
+        accountName,
+        `${window.location.origin}/accounts`,
+      ),
+    onSuccess: (result) => {
+      window.location.href = result.authUrl;
     },
   });
 
@@ -99,6 +126,10 @@ export function ProviderAccountsPage() {
 
   function submit(event: FormEvent) {
     event.preventDefault();
+    if (providerName === ProviderName.GoogleDrive) {
+      startOAuth.mutate();
+      return;
+    }
     add.mutate();
   }
 
@@ -116,6 +147,12 @@ export function ProviderAccountsPage() {
           {showForm ? "Cancel" : "+ Add Account"}
         </button>
       </div>
+
+      {oauthMessage && (
+        <p className="rounded-lg border border-[var(--border)] bg-[var(--muted)] px-4 py-3 text-sm text-gray-300">
+          {oauthMessage}
+        </p>
+      )}
 
       {showForm && (
         <form onSubmit={submit} className="rounded-xl border border-[var(--border)] bg-[var(--muted)] p-6 space-y-5">
@@ -152,7 +189,7 @@ export function ProviderAccountsPage() {
                 <Field label="Secret Access Key" value={r2.secretAccessKey} onChange={(v) => setR2({ ...r2, secretAccessKey: v })} placeholder="R2 secret access key" required type="password" />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <Field label="Endpoint (optional)" value={r2.endpoint} onChange={(v) => setR2({ ...r2, endpoint: v })} placeholder="https://…r2.cloudflarestorage.com" />
+                <Field label="Endpoint (optional)" value={r2.endpoint} onChange={(v) => setR2({ ...r2, endpoint: v })} placeholder="https://example.r2.cloudflarestorage.com" />
                 <Field label="Region (optional)" value={r2.region} onChange={(v) => setR2({ ...r2, region: v })} placeholder="auto" />
               </div>
             </div>
@@ -160,38 +197,38 @@ export function ProviderAccountsPage() {
 
           {providerName === ProviderName.GoogleDrive && (
             <div className="space-y-4">
-              <p className="text-xs text-gray-500 uppercase tracking-wider">Google Drive credentials</p>
-              <div className="grid grid-cols-1 gap-4">
-                <Field label="Access Token" value={gd.accessToken} onChange={(v) => setGD({ ...gd, accessToken: v })} placeholder="ya29.…" required type="password" />
-                <Field label="Refresh Token (optional)" value={gd.refreshToken} onChange={(v) => setGD({ ...gd, refreshToken: v })} placeholder="1//…" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <Field label="Client ID (optional)" value={gd.clientId} onChange={(v) => setGD({ ...gd, clientId: v })} placeholder="….apps.googleusercontent.com" />
-                <Field label="Client Secret (optional)" value={gd.clientSecret} onChange={(v) => setGD({ ...gd, clientSecret: v })} placeholder="GOCSPX-…" type="password" />
-              </div>
-              <Field label="Account Email (optional)" value={gd.accountEmail} onChange={(v) => setGD({ ...gd, accountEmail: v })} placeholder="user@gmail.com" />
+              <p className="text-xs text-gray-500 uppercase tracking-wider">Google Drive OAuth</p>
+              <p className="text-sm text-gray-400">
+                Connect with Google to grant Drive access. Tokens will be saved encrypted after Google redirects back.
+              </p>
+              {!googleOAuthReady && (
+                <p className="text-amber-300 text-sm bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
+                  Save Google Drive OAuth client ID and client secret from the Google Drive provider page first.
+                </p>
+              )}
             </div>
           )}
 
-          {add.error && (
+          {(add.error || startOAuth.error) && (
             <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
-              {String(add.error)}
+              {String(add.error ?? startOAuth.error)}
             </p>
           )}
 
           <div className="flex justify-end">
             <button
               type="submit"
-              disabled={add.isPending}
+              disabled={add.isPending || startOAuth.isPending || (providerName === ProviderName.GoogleDrive && !googleOAuthReady)}
               className="px-5 py-2 text-sm font-medium bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg disabled:opacity-50 transition-colors"
             >
-              {add.isPending ? "Adding…" : "Add Account"}
+              {providerName === ProviderName.GoogleDrive
+                ? startOAuth.isPending ? "Opening Google..." : googleOAuthReady ? "Connect Google Drive" : "Settings Required"
+                : add.isPending ? "Adding..." : "Add Account"}
             </button>
           </div>
         </form>
       )}
 
-      {/* Provider tabs */}
       <div className="flex gap-0.5 border-b border-[var(--border)]">
         {PROVIDERS.map((p) => (
           <button
@@ -236,7 +273,7 @@ export function ProviderAccountsPage() {
               {(accounts.data ?? []).map((account) => (
                 <tr key={account.accountName} className="border-b border-[var(--border)] last:border-0 hover:bg-white/[0.03]">
                   <td className="px-5 py-3 text-white font-medium">{account.accountName}</td>
-                  <td className="px-5 py-3 text-gray-400 font-mono text-xs">{account.credentialHint ?? "—"}</td>
+                  <td className="px-5 py-3 text-gray-400 font-mono text-xs">{account.credentialHint ?? "-"}</td>
                   <td className="px-5 py-3 text-gray-500 text-xs">{account.createdAt}</td>
                   <td className="px-5 py-3">
                     <button

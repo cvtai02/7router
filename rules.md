@@ -1,12 +1,13 @@
 # Project Rules
-- Bootstrap settings (system secret, database URL) live in `app/.env` only. Never store them in the database or commit them.
+- Bootstrap settings (system secret, encryption key, database URL) live in `app/.env` only. Never store them in the database or commit them.
 - Runtime settings (provider enabled flags, feature flags) are stored in the database and managed from the admin System Config page.
-- Use access-token authentication for protected API endpoints with `Authorization: Bearer <token>`.
-- `SYSTEM_SECRET` env var serves two purposes: it is the admin login credential and the source of the AES-256-GCM encryption key (derived via SHA-256).
-- Provider credentials must be encrypted at rest with AES-256-GCM; key is `SHA-256(SYSTEM_SECRET)` — no separate key env var.
+- Use access-token authentication for protected API endpoints with `Authorization: Bearer <token>`. Access tokens are issued from the system secret login.
+- `SYSTEM_SECRET` env var is the admin login credential. `ENCRYPTION_KEY` is a separate env var used only for encryption.
+- Provider credentials must be encrypted at rest with AES-256-GCM; key is `SHA-256(ENCRYPTION_KEY)`.
 - Do not add username/password app auth unless explicitly requested.
 - Do not add scheduled sync, queues, billing, public sharing, or dynamic npm provider plugins for the initial version.
 - Do not add a repository layer above Prisma. Use cases may depend directly on Prisma context.
+- Prisma is the database adapter: database swaps happen through the Prisma datasource configuration, not a custom abstraction. Adapter-based infrastructure applies to non-ORM services (storage, email).
 - Controllers stay thin and call use cases.
 - Backend API route handlers must be one API per file, using `*.api.ts`.
 - Backend use cases must be one use case per file.
@@ -16,6 +17,8 @@
 - The provider enum values are `CloudflareR2` and `GoogleDrive`.
 - Absolute path format is `<ProviderName>/<AccountName>/<Bucket or Folder>/<Key or file path>`.
 - Sync is manual only and accepts an `absolutePath`.
-- CORS must allow all origins, methods, and headers.
+- CORS must allow all origins, methods, and headers. This is acceptable because authentication uses the bearer header, not cookies, so cross-origin requests carry no credentials.
 - Documentation must be updated when folder structure, module boundaries, API contracts, DTOs, use cases, adapters, shared kernel concepts, agent rules, or handoff status change.
-- Entity classes must define and protect the constraints of that entity. Aggregates must define and protect constraints involving relationships between multiple entities.
+- API errors use the NestJS default error shape `{ statusCode, message, error }` across all endpoints.
+- All schema changes go through Prisma migrations committed in the same change set; never edit the database schema manually.
+- Entity classes must define and protect the constraints of that entity. Aggregates must define and protect constraints involving relationships between multiple entities. Since Prisma returns plain objects, validate invariants in use cases and shared value objects rather than introducing a mapping layer over Prisma.

@@ -42,8 +42,8 @@ export class CredentialEncryptionService {
   }
 
   private getKey(): Buffer {
-    const secret = process.env.SYSTEM_SECRET ?? "";
-    if (!secret) throw new Error("SYSTEM_SECRET is not set.");
+    const secret = process.env.ENCRYPTION_KEY ?? "";
+    if (!secret) throw new Error("ENCRYPTION_KEY is not set.");
     return createHash("sha256").update(secret, "utf8").digest();
   }
 }

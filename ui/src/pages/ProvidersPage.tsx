@@ -53,7 +53,7 @@ export function ProvidersPage() {
             return (
               <Link
                 key={provider.providerName}
-                to="/accounts"
+                to={`/providers/${provider.providerName}`}
                 className="rounded-xl border border-[var(--border)] bg-[var(--muted)] p-4 flex items-center gap-3 hover:border-indigo-500/50 transition-colors"
               >
                 <div className="w-10 h-10 flex items-center justify-center shrink-0">

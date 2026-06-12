@@ -69,6 +69,7 @@ export interface ProviderAccountSummaryDto {
   providerName: ProviderName;
   accountName: string;
   credentialHint?: string;
+  occupiedSpaceBytes: number;
   createdAt: string;
 }
 
@@ -81,6 +82,10 @@ export interface AddAccountResponseDto {
   providerName: ProviderName;
   accountName: string;
   added: boolean;
+}
+
+export interface StartProviderOAuthResponseDto {
+  authUrl: string;
 }
 
 export interface RemoveAccountResponseDto {
@@ -143,6 +148,26 @@ export interface MaskedToken {
   permissions: TokenPermission[];
 }
 
+export interface GoogleDriveOAuthSettings {
+  clientId: string;
+  clientSecretSet: boolean;
+  redirectUri: string;
+  uiBaseUrl: string;
+}
+
+export interface SettingsResponse {
+  googleDriveOAuth: GoogleDriveOAuthSettings;
+}
+
+export interface UpdateSettingsRequest {
+  googleDriveOAuth?: {
+    clientId?: string;
+    clientSecret?: string;
+    redirectUri?: string;
+    uiBaseUrl?: string;
+  };
+}
+
 // ---- HTTP helper ----
 
 async function request<T>(path: string, token: string, init: RequestInit = {}): Promise<T> {
@@ -159,6 +184,16 @@ async function request<T>(path: string, token: string, init: RequestInit = {}): 
   }
   if (!res.ok) {
     const text = await res.text().catch(() => "");
+    if (text) {
+      let message = "";
+      try {
+        const parsed = JSON.parse(text) as { message?: unknown };
+        if (typeof parsed.message === "string") message = parsed.message;
+      } catch {
+        message = "";
+      }
+      if (message) throw new Error(message);
+    }
     throw new Error(text || `HTTP ${res.status}`);
   }
   const text = await res.text();
@@ -199,6 +234,11 @@ function accountsClient(token: string) {
       request<AddAccountResponseDto>(`/providers/${providerName}/accounts`, token, {
         method: "POST",
         body: JSON.stringify(input),
+      }),
+    startOAuth: (providerName: ProviderName, accountName: string, returnUrl: string) =>
+      request<StartProviderOAuthResponseDto>(`/providers/${providerName}/accounts/oauth/start`, token, {
+        method: "POST",
+        body: JSON.stringify({ accountName, returnUrl }),
       }),
     removeAccount: (providerName: ProviderName, accountName: string) =>
       request<RemoveAccountResponseDto>(
@@ -247,8 +287,9 @@ function syncClient(token: string) {
 
 function settingsClient(token: string) {
   return {
-    getSettings: () => request<Record<string, never>>("/settings", token),
-    updateSettings: () => request<Record<string, never>>("/settings", token, { method: "PUT", body: JSON.stringify({}) }),
+    getSettings: () => request<SettingsResponse>("/settings", token),
+    updateSettings: (input: UpdateSettingsRequest) =>
+      request<SettingsResponse>("/settings", token, { method: "PUT", body: JSON.stringify(input) }),
     reloadSettings: () => request<{ restartRequired: boolean }>("/settings/reload", token, { method: "POST" }),
     listTokens: () => request<{ tokens: MaskedToken[] }>("/settings/tokens", token),
     addToken: (name: string, tok: string) =>

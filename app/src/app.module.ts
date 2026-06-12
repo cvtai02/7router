@@ -18,6 +18,7 @@ import { GetSettingsUseCase } from "./modules/settings/usecases/get-settings.use
 import { ListTokensUseCase } from "./modules/settings/usecases/list-tokens.usecase";
 import { ReloadSettingsUseCase } from "./modules/settings/usecases/reload-settings.usecase";
 import { RemoveTokenUseCase } from "./modules/settings/usecases/remove-token.usecase";
+import { RevealTokenUseCase } from "./modules/settings/usecases/reveal-token.usecase";
 import { AddPermissionUseCase } from "./modules/settings/usecases/add-permission.usecase";
 import { RemovePermissionUseCase } from "./modules/settings/usecases/remove-permission.usecase";
 import { UpdateSettingsUseCase } from "./modules/settings/usecases/update-settings.usecase";
@@ -28,8 +29,10 @@ import { GetProviderUseCase } from "./modules/providers/usecases/get-provider.us
 import { ListProviderAccountsUseCase } from "./modules/providers/usecases/list-provider-accounts.usecase";
 import { ListProvidersUseCase } from "./modules/providers/usecases/list-providers.usecase";
 import { AddAccountApi } from "./modules/accounts/controllers/add-account.api";
+import { GoogleDriveOAuthApi } from "./modules/accounts/controllers/google-drive-oauth.api";
 import { RemoveAccountApi } from "./modules/accounts/controllers/remove-account.api";
 import { AddAccountUseCase } from "./modules/accounts/usecases/add-account.usecase";
+import { GoogleDriveOAuthUseCase } from "./modules/accounts/usecases/google-drive-oauth.usecase";
 import { RemoveAccountUseCase } from "./modules/accounts/usecases/remove-account.usecase";
 import { CreateBucketApi } from "./modules/files/controllers/create-bucket.api";
 import { CreateFolderApi } from "./modules/files/controllers/create-folder.api";
@@ -66,6 +69,7 @@ import { RunSyncUseCase } from "./modules/sync/usecases/run-sync.usecase";
     GetProviderApi,
     ListProviderAccountsApi,
     AddAccountApi,
+    GoogleDriveOAuthApi,
     RemoveAccountApi,
     ListFilesApi,
     ListAllFilesApi,
@@ -93,12 +97,14 @@ import { RunSyncUseCase } from "./modules/sync/usecases/run-sync.usecase";
     ListTokensUseCase,
     AddTokenUseCase,
     RemoveTokenUseCase,
+    RevealTokenUseCase,
     AddPermissionUseCase,
     RemovePermissionUseCase,
     ListProvidersUseCase,
     GetProviderUseCase,
     ListProviderAccountsUseCase,
     AddAccountUseCase,
+    GoogleDriveOAuthUseCase,
     RemoveAccountUseCase,
     ListFilesUseCase,
     ListAllFilesUseCase,

@@ -100,10 +100,13 @@ model GoogleSetting {
 }
 
 model AccessToken {
-  id          String   @id @default(cuid())
-  name        String
-  value       String   @unique
-  permissions String   @default("[]")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String   @id @default(cuid())
+  name           String
+  value          String?  @unique // legacy plaintext; cleared by startup backfill
+  prefix         String   @default("")
+  valueHash      String?  @unique // SHA-256 hex of the token value, used for lookups
+  encryptedValue String? // AES-256-GCM envelope, used for reveal
+  permissions    String   @default("[]")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

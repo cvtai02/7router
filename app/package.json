@@ -10,7 +10,8 @@
     "test": "vitest run",
     "init-db": "node scripts/init-sqlite.mjs",
     "prisma:generate": "prisma generate",
-    "prisma:push": "cross-env DATABASE_URL=file:../dev.db prisma db push"
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.821.0",

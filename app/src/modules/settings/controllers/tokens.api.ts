@@ -1,9 +1,9 @@
 import { Body, Controller, Delete, Get, Inject, Param, ParseIntPipe, Post } from "@nestjs/common";
-import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { MaskedToken, TokenPermission } from "../../../infrastructure/settings/settings.service";
 import { AddTokenUseCase } from "../usecases/add-token.usecase";
 import { ListTokensUseCase } from "../usecases/list-tokens.usecase";
 import { RemoveTokenUseCase } from "../usecases/remove-token.usecase";
+import { RevealTokenUseCase } from "../usecases/reveal-token.usecase";
 import { AddPermissionUseCase } from "../usecases/add-permission.usecase";
 import { RemovePermissionUseCase } from "../usecases/remove-permission.usecase";
 
@@ -13,9 +13,9 @@ export class TokensApi {
     @Inject(ListTokensUseCase) private readonly list: ListTokensUseCase,
     @Inject(AddTokenUseCase) private readonly add: AddTokenUseCase,
     @Inject(RemoveTokenUseCase) private readonly remove: RemoveTokenUseCase,
+    @Inject(RevealTokenUseCase) private readonly reveal: RevealTokenUseCase,
     @Inject(AddPermissionUseCase) private readonly addPerm: AddPermissionUseCase,
     @Inject(RemovePermissionUseCase) private readonly removePerm: RemovePermissionUseCase,
-    @Inject(PrismaService) private readonly prisma: PrismaService,
   ) {}
 
   @Get()
@@ -29,9 +29,8 @@ export class TokensApi {
   }
 
   @Get(":id/reveal")
-  async revealToken(@Param("id") id: string): Promise<{ value: string }> {
-    const token = await this.prisma.accessToken.findUniqueOrThrow({ where: { id } });
-    return { value: token.value };
+  revealToken(@Param("id") id: string): Promise<{ value: string }> {
+    return this.reveal.execute(id);
   }
 
   @Delete(":id")

@@ -12,12 +12,20 @@ export class ListProviderAccountsUseCase {
       where: { provider: { name: providerName } },
       orderBy: { accountName: "asc" },
     });
-    return accounts.map((account) => ({
-      providerName,
-      accountName: account.accountName,
-      credentialHint: account.credentialHint ?? undefined,
-      createdAt: account.createdAt.toISOString(),
-    }));
+    return Promise.all(
+      accounts.map(async (account) => {
+        const occupied = await this.prisma.storageKey.aggregate({
+          where: { bucket: { accountId: account.id } },
+          _sum: { sizeBytes: true },
+        });
+        return {
+          providerName,
+          accountName: account.accountName,
+          credentialHint: account.credentialHint ?? undefined,
+          occupiedSpaceBytes: occupied._sum.sizeBytes ?? 0,
+          createdAt: account.createdAt.toISOString(),
+        };
+      }),
+    );
   }
 }
-

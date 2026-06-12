@@ -1,6 +1,6 @@
 # Handoff: Initial API Contract
 
-Status: Pending
+Status: Completed
 Direction: Backend to UI
 Created: 2026-06-02
 Owner: Backend

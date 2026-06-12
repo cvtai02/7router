@@ -1,5 +1,6 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
+import { hashAccessTokenValue } from "../../core/security/access-token-hash";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { TokenPermission } from "../../infrastructure/settings/settings.service";
 import { ACCESS_OVERRIDE_KEY, POLICY_KEY } from "./policy.decorator";
@@ -32,7 +33,7 @@ export class AccessTokenGuard implements CanActivate {
     const systemToken = process.env.SYSTEM_SECRET ?? "";
     if (systemToken && token === systemToken) return true;
 
-    const clientToken = await this.prisma.accessToken.findUnique({ where: { value: token } });
+    const clientToken = await this.prisma.accessToken.findUnique({ where: { valueHash: hashAccessTokenValue(token) } });
     if (!clientToken) throw new UnauthorizedException("Valid access token required.");
 
     const policy = this.reflector.getAllAndOverride<string | undefined>(POLICY_KEY, [context.getHandler(), context.getClass()]);
