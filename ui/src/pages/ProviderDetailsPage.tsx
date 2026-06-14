@@ -202,7 +202,7 @@ export function ProviderDetailsPage() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-lg font-semibold text-white">Google Drive settings</h2>
-                <p className="text-xs text-gray-500 mt-1">OAuth credentials are saved in SQLite. The client secret is encrypted.</p>
+                <p className="text-xs text-gray-500 mt-1">OAuth credentials are saved in the database. The client secret is encrypted.</p>
               </div>
               <button
                 type="button"

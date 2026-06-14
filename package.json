@@ -7,7 +7,6 @@
     "dev:ui": "pnpm --filter @7router/ui dev",
     "build": "pnpm -r build",
     "test": "pnpm -r test",
-    "smoke": "pnpm --filter @7router/api-mcp-server smoke",
     "format": "prettier --write ."
   },
   "devDependencies": {
