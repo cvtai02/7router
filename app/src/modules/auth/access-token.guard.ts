@@ -1,8 +1,8 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { hashAccessTokenValue } from "../../core/security/access-token-hash";
+import { hashAccessTokenValue, safeEqualSecret } from "../../core/security/access-token-hash";
+import { isPathAllowed, PathPermission } from "../../core/security/path-permission";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
-import { TokenPermission } from "../../infrastructure/settings/settings.service";
 import { ACCESS_OVERRIDE_KEY, POLICY_KEY } from "./policy.decorator";
 
 export const IS_PUBLIC_ROUTE = "isPublicRoute";
@@ -31,7 +31,7 @@ export class AccessTokenGuard implements CanActivate {
     if (!token) throw new UnauthorizedException("Valid access token required.");
 
     const systemToken = process.env.SYSTEM_SECRET ?? "";
-    if (systemToken && token === systemToken) return true;
+    if (systemToken && safeEqualSecret(token, systemToken)) return true;
 
     const clientToken = await this.prisma.accessToken.findUnique({ where: { valueHash: hashAccessTokenValue(token) } });
     if (!clientToken) throw new UnauthorizedException("Valid access token required.");
@@ -52,14 +52,10 @@ export class AccessTokenGuard implements CanActivate {
     const isWrite = accessOverride ? accessOverride === "write" : ["POST", "PUT", "PATCH", "DELETE"].includes(request.method.toUpperCase());
     const needed = isWrite ? "write" : "read";
 
-    const permissions = JSON.parse(clientToken.permissions) as TokenPermission[];
-    const allowed = permissions.some((p) => {
-      const pathMatch = path === p.path || path.startsWith(p.path + "/");
-      const accessMatch = p.access === "read-write" || p.access === needed;
-      return pathMatch && accessMatch;
-    });
-
-    if (!allowed) throw new ForbiddenException("Token does not have permission for this path.");
+    const permissions = JSON.parse(clientToken.permissions) as PathPermission[];
+    if (!isPathAllowed(permissions, path, needed)) {
+      throw new ForbiddenException("Token does not have permission for this path.");
+    }
     return true;
   }
 }

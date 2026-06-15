@@ -35,7 +35,7 @@ export class RunSyncUseCase {
       const provider = this.providers.resolve(parsed.providerName);
       const stack = [parsed.originalPath];
       const seen = new Set<string>();
-      const persistedPaths = new Set<string>();
+      let persistedCount = 0;
       const seenBucketIds = new Set<string>();
 
       while (stack.length > 0) {
@@ -45,15 +45,19 @@ export class RunSyncUseCase {
         const items = await provider.listSubFolderAndFile(path);
         discovered += items.length;
         for (const item of items) {
-          if (item.type === "folder" || item.type === "bucket") {
+          // Descend into accounts (provider-level sync), buckets, and folders so
+          // every level is enumerated — otherwise a provider-level sync would
+          // persist nothing and then delete everything in the cleanup phase.
+          if (item.type === "account" || item.type === "bucket" || item.type === "folder") {
             stack.push(item.absolutePath);
           }
           if (!item.accountName || !item.bucketOrRootName) continue;
           try {
-            const { existed, bucketId } = await this.persistItem(item);
-            persistedPaths.add(item.absolutePath);
-            if (bucketId) seenBucketIds.add(bucketId);
-            if (existed) updated += 1;
+            const result = await this.persistItem(item);
+            if (!result) continue; // account row not found — nothing persisted
+            persistedCount += 1;
+            seenBucketIds.add(result.bucketId);
+            if (result.existed) updated += 1;
             else inserted += 1;
           } catch {
             failed += 1;
@@ -61,44 +65,45 @@ export class RunSyncUseCase {
         }
       }
 
-      // Remove stale StorageKey records not found in this sync
-      const syncedPrefix = parsed.originalPath + "/";
-      const keyResult = await this.prisma.storageKey.deleteMany({
-        where: {
-          absolutePath: { startsWith: syncedPrefix },
-          NOT: { absolutePath: { in: [...persistedPaths] } },
-        },
-      });
-      deleted += keyResult.count;
+      // Stale cleanup runs ONLY when this sync actually persisted something. A
+      // zero-result sync (transient provider error, empty or unreachable
+      // account) must never wipe existing data.
+      if (persistedCount > 0) {
+        const syncedPrefix = parsed.originalPath + "/";
 
-      // Remove stale StorageBucket records when syncing at account or provider level
-      if (!parsed.bucketOrRootName) {
-        const bucketWhere = seenBucketIds.size > 0
-          ? { NOT: { id: { in: [...seenBucketIds] } } }
-          : {};
+        // Delete keys under this path not touched this run. Comparing
+        // lastSyncedAt against the run start avoids a NOT IN (...) over every
+        // persisted path, which would exceed Postgres's bind-parameter limit on
+        // large buckets.
+        const keyResult = await this.prisma.storageKey.deleteMany({
+          where: {
+            absolutePath: { startsWith: syncedPrefix },
+            lastSyncedAt: { lt: syncRun.startedAt },
+          },
+        });
+        deleted += keyResult.count;
 
-        if (parsed.accountName) {
-          // Scoped to one account
+        // Remove stale buckets when syncing at account or provider level.
+        if (!parsed.bucketOrRootName && seenBucketIds.size > 0) {
+          const bucketWhere = { NOT: { id: { in: [...seenBucketIds] } } };
           const providerRecord = await this.prisma.providerRecord.findUnique({ where: { name: parsed.providerName } });
           if (providerRecord) {
-            const account = await this.prisma.providerAccount.findUnique({
-              where: { providerId_accountName: { providerId: providerRecord.id, accountName: parsed.accountName } },
-            });
-            if (account) {
+            if (parsed.accountName) {
+              const account = await this.prisma.providerAccount.findUnique({
+                where: { providerId_accountName: { providerId: providerRecord.id, accountName: parsed.accountName } },
+              });
+              if (account) {
+                const bucketResult = await this.prisma.storageBucket.deleteMany({
+                  where: { accountId: account.id, ...bucketWhere },
+                });
+                deleted += bucketResult.count;
+              }
+            } else {
               const bucketResult = await this.prisma.storageBucket.deleteMany({
-                where: { accountId: account.id, ...bucketWhere },
+                where: { account: { providerId: providerRecord.id }, ...bucketWhere },
               });
               deleted += bucketResult.count;
             }
-          }
-        } else {
-          // Provider-level sync — scope to all accounts of this provider
-          const providerRecord = await this.prisma.providerRecord.findUnique({ where: { name: parsed.providerName } });
-          if (providerRecord) {
-            const bucketResult = await this.prisma.storageBucket.deleteMany({
-              where: { account: { providerId: providerRecord.id }, ...bucketWhere },
-            });
-            deleted += bucketResult.count;
           }
         }
       }
@@ -118,7 +123,7 @@ export class RunSyncUseCase {
     }
   }
 
-  private async persistItem(item: ProviderListItemDto): Promise<{ existed: boolean; bucketId: string }> {
+  private async persistItem(item: ProviderListItemDto): Promise<{ existed: boolean; bucketId: string } | null> {
     const provider = await this.prisma.providerRecord.upsert({
       where: { name: item.providerName },
       update: {},
@@ -130,7 +135,7 @@ export class RunSyncUseCase {
     const account = await this.prisma.providerAccount.findUnique({
       where: { providerId_accountName: { providerId: provider.id, accountName: item.accountName! } },
     });
-    if (!account) return { existed: false, bucketId: "" };
+    if (!account) return null;
     const bucket = await this.prisma.storageBucket.upsert({
       where: { accountId_name: { accountId: account.id, name: item.bucketOrRootName! } },
       update: {},
