@@ -65,6 +65,7 @@ model StorageKey {
   updatedAt      DateTime      @updatedAt
 
   @@index([bucketId, key])
+  @@index([lastSyncedAt])
 }
 
 model SyncRun {
@@ -82,6 +83,9 @@ model SyncRun {
   errorMessage String?
   startedAt    DateTime     @default(now())
   completedAt  DateTime?
+
+  @@index([absolutePath])
+  @@index([startedAt])
 }
 
 model AppSetting {

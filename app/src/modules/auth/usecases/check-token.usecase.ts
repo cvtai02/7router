@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { hashAccessTokenValue } from "../../../core/security/access-token-hash";
+import { hashAccessTokenValue, safeEqualSecret } from "../../../core/security/access-token-hash";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { SettingsService } from "../../../infrastructure/settings/settings.service";
 import { CheckTokenRequestDto } from "../dtos/check-token-request.dto";
@@ -14,7 +14,7 @@ export class CheckTokenUseCase {
 
   async execute(input: CheckTokenRequestDto): Promise<CheckTokenResponseDto> {
     const systemToken = this.settings.getSystemSecret();
-    if (systemToken && input.accessToken === systemToken) return { valid: true };
+    if (systemToken && safeEqualSecret(input.accessToken, systemToken)) return { valid: true };
     const token = await this.prisma.accessToken.findUnique({ where: { valueHash: hashAccessTokenValue(input.accessToken) } });
     return { valid: token !== null };
   }

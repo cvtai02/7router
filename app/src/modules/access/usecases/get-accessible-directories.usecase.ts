@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { hashAccessTokenValue } from "../../../core/security/access-token-hash";
+import { hashAccessTokenValue, safeEqualSecret } from "../../../core/security/access-token-hash";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { TokenPermission } from "../../../infrastructure/settings/settings.service";
 
@@ -19,7 +19,7 @@ export class GetAccessibleDirectoriesUseCase {
 
   async execute(bearerToken: string): Promise<GetAccessibleDirectoriesResponseDto> {
     const systemSecret = process.env.SYSTEM_SECRET ?? "";
-    if (systemSecret && bearerToken === systemSecret) {
+    if (systemSecret && safeEqualSecret(bearerToken, systemSecret)) {
       return { isAdmin: true, directories: [] };
     }
 

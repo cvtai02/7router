@@ -2,8 +2,8 @@ name: Deploy API (SSH)
 
 # Continuous deploy for the 7router API. On push to main touching app/**, a
 # GitHub-hosted runner SSHes into the VPS (password auth via sshpass) and runs
-# deploy/remote-deploy.sh (git pull -> pnpm install -> prisma migrate deploy ->
-# build -> pm2 reload). The UI is deployed separately (Vercel).
+# deploy/remote-deploy.sh (git pull -> pnpm install -> prisma generate ->
+# build -> pm2 reload). Migrations are run manually. UI is deployed separately.
 #
 # Required repo secrets (Settings -> Secrets and variables -> Actions):
 #   VPS_HOST      - server IP/hostname (e.g. 116.118.9.84)

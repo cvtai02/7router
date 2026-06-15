@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Inject, Param, ParseIntPipe, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Inject, Param, ParseIntPipe, Post, HttpCode } from "@nestjs/common";
 import { MaskedToken, TokenPermission } from "../../../infrastructure/settings/settings.service";
 import { AddTokenUseCase } from "../usecases/add-token.usecase";
 import { ListTokensUseCase } from "../usecases/list-tokens.usecase";
@@ -28,7 +28,8 @@ export class TokensApi {
     return this.add.execute(body.name, body.token);
   }
 
-  @Get(":id/reveal")
+  @Post(":id/reveal")
+  @HttpCode(200)
   revealToken(@Param("id") id: string): Promise<{ value: string }> {
     return this.reveal.execute(id);
   }

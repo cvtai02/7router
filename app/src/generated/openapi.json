@@ -96,7 +96,7 @@
       }
     },
     "/settings/tokens/{id}/reveal": {
-      "get": {
+      "post": {
         "operationId": "TokensApi_revealToken",
         "parameters": [
           {

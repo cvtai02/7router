@@ -298,7 +298,7 @@ function settingsClient(token: string) {
         body: JSON.stringify({ name, token: tok }),
       }),
     revealToken: (id: string) =>
-      request<{ value: string }>(`/settings/tokens/${id}/reveal`, token),
+      request<{ value: string }>(`/settings/tokens/${id}/reveal`, token, { method: "POST" }),
     removeToken: (id: string) =>
       request<{ tokens: MaskedToken[] }>(`/settings/tokens/${id}`, token, { method: "DELETE" }),
     addPermission: (tokenId: string, path: string, access: TokenPermission["access"]) =>
