@@ -130,6 +130,10 @@ curl -X POST http://localhost:20131/files/get \
   -d '{"absolutePath": "CloudflareR2/my-account/my-bucket/photo.jpg"}'
 ```
 
+Response includes metadata plus a provider download URL. Cloudflare R2 returns
+`downloadUrl` as a short-lived signed URL and keeps `cdnUrl` as the raw provider
+object URL.
+
 #### Upload file
 
 ```bash

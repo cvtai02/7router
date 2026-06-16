@@ -1,12 +1,14 @@
 import { Injectable } from "@nestjs/common";
 import {
   CreateBucketCommand,
+  GetObjectCommand,
   HeadObjectCommand,
   ListBucketsCommand,
   ListObjectsV2Command,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { ProviderName } from "../../../core/enums/provider-name.enum";
 import {
   AddProviderAccountDto,
@@ -193,10 +195,15 @@ export class CloudflareR2Provider implements IProvider {
     const account = await this.findAccount(parsed.accountName);
     const credentials = this.encryption.decrypt<CloudflareR2CredentialsDto>(account.encryptedCredentials);
     const client = this.createClient(credentials);
-    // Metadata only — the server does not download the object body. The client
-    // fetches the bytes directly from cdnUrl.
+    // Metadata only. Clients fetch bytes with the short-lived signed download URL.
     const head = await client.send(new HeadObjectCommand({ Bucket: parsed.bucketOrRootName, Key: parsed.keyOrPath }));
     const base = credentials.endpoint ?? `https://${credentials.accountId}.r2.cloudflarestorage.com`;
+    const downloadUrl = await getSignedUrl(
+      client,
+      new GetObjectCommand({ Bucket: parsed.bucketOrRootName, Key: parsed.keyOrPath }),
+      { expiresIn: 60 * 15 },
+    );
+
     return {
       absolutePath: parsed.originalPath,
       providerName: this.providerName,
@@ -206,6 +213,7 @@ export class CloudflareR2Provider implements IProvider {
       contentType: head.ContentType,
       sizeBytes: head.ContentLength ? Number(head.ContentLength) : undefined,
       cdnUrl: `${base}/${parsed.bucketOrRootName}/${parsed.keyOrPath}`,
+      downloadUrl,
     };
   }
 
@@ -232,4 +240,3 @@ export class CloudflareR2Provider implements IProvider {
     return value.length <= 4 ? "****" : `${value.slice(0, 2)}****${value.slice(-2)}`;
   }
 }
-

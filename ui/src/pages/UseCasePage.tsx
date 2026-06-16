@@ -40,7 +40,7 @@ const USE_CASES: UseCaseDef[] = [
   {
     id: "get-file",
     title: "Get file details and download URL",
-    description: "Retrieve a file's metadata and a URL to download it directly from the provider. The server does not transfer file bytes — use the returned cdnUrl (CloudflareR2) or downloadUrl (GoogleDrive) to fetch the content yourself.",
+    description: "Retrieve a file's metadata and a URL to download it directly from the provider. The server does not transfer file bytes; use the returned downloadUrl to fetch the content yourself.",
     method: "POST",
     endpoint: "/files/get",
     requestBody: {
@@ -56,12 +56,14 @@ const USE_CASES: UseCaseDef[] = [
         contentType: "image/jpeg",
         sizeBytes: 204800,
         cdnUrl: "https://<account-id>.r2.cloudflarestorage.com/my-bucket/images/photo.jpg",
+        downloadUrl: "https://<account-id>.r2.cloudflarestorage.com/my-bucket/images/photo.jpg?X-Amz-Signature=<signature>",
       },
     },
     notes: [
       "absolutePath format: <Provider>/<account>/<bucket>/<path>/<filename>",
-      "The server returns metadata only — it never streams the file body.",
-      "CloudflareR2 files return cdnUrl; GoogleDrive files return downloadUrl (webContentLink).",
+      "The server returns metadata only; it never streams the file body.",
+      "CloudflareR2 files return a short-lived signed downloadUrl plus the raw cdnUrl.",
+      "GoogleDrive files return downloadUrl (webContentLink).",
       "Download the bytes yourself by requesting the returned URL.",
       "Token must have read permission for the path.",
     ],

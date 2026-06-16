@@ -23,7 +23,7 @@ export interface ProviderFileDto {
   contentType?: string;
   sizeBytes?: number;
   // The server does not transfer file bytes. It returns a URL the client uses to
-  // download directly from the provider: cdnUrl for R2, downloadUrl for Google Drive.
+  // download directly from the provider.
   cdnUrl?: string;
   downloadUrl?: string;
 }
@@ -50,4 +50,3 @@ export interface IProvider {
   uploadFile(absolutePath: string, contentBase64: string, contentType?: string): Promise<void>;
   getBucketCdnUrl(bucketPath: string): Promise<string>;
 }
-
