@@ -66,7 +66,7 @@ export function BrowserPage() {
 
   const file = useQuery({
     queryKey: ["file", filePath],
-    queryFn: () => clients().files.get(filePath),
+    queryFn: () => clients().files.download(filePath),
     enabled: Boolean(filePath),
   });
 
@@ -88,7 +88,7 @@ export function BrowserPage() {
     mutationFn: async (file: File) => {
       const contentBase64 = await fileToBase64(file);
       const absolutePath = `${path}/${file.name}`;
-      return clients().files.uploadFile(absolutePath, contentBase64, file.type || undefined);
+      return clients().files.uploadFile({ absolutePath, contentBase64, contentType: file.type || undefined });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["files", path] });
@@ -337,7 +337,7 @@ export function BrowserPage() {
 
       {file.data && (
         <div>
-          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">File Details</h2>
+          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Downloaded File</h2>
           <pre className="bg-black/40 border border-[var(--border)] rounded-xl text-gray-300 text-xs p-5 overflow-auto">
             {JSON.stringify(file.data.file, null, 2)}
           </pre>

@@ -21,4 +21,3 @@ export class ProviderRegistryService {
     return [this.r2, this.googleDrive];
   }
 }
-

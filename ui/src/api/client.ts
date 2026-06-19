@@ -37,16 +37,43 @@ export interface ProviderListItemDto {
   cdnUrl?: string;
 }
 
-export interface ProviderFileDto {
+export interface DownloadFileDto {
   absolutePath: string;
-  providerName: ProviderName;
-  accountName: string;
-  bucketOrRootName: string;
-  keyOrPath: string;
   contentType?: string;
   sizeBytes?: number;
-  cdnUrl?: string;
-  downloadUrl?: string;
+  contentBase64: string;
+}
+
+export interface UploadFileDto {
+  absolutePath: string;
+  contentBase64: string;
+  contentType?: string;
+}
+
+export interface TempDownloadUrlRequestDto {
+  absolutePath: string;
+  expiresInSeconds?: number;
+}
+
+export interface TempDownloadUrlDto {
+  absolutePath: string;
+  url: string;
+  method: "GET";
+  expiresAt: string;
+}
+
+export interface TempUploadUrlRequestDto {
+  absolutePath: string;
+  contentType?: string;
+  expiresInSeconds?: number;
+}
+
+export interface TempUploadUrlDto {
+  absolutePath: string;
+  url: string;
+  method: "PUT";
+  headers: Record<string, string>;
+  expiresAt: string;
 }
 
 export interface ListFilesResponseDto {
@@ -54,8 +81,8 @@ export interface ListFilesResponseDto {
   items: ProviderListItemDto[];
 }
 
-export interface GetFileResponseDto {
-  file: ProviderFileDto;
+export interface DownloadFileResponseDto {
+  file: DownloadFileDto;
 }
 
 export interface ProviderSummaryDto {
@@ -253,18 +280,22 @@ function filesClient(token: string) {
   return {
     list: (path: string) =>
       request<ListFilesResponseDto>("/files/list", token, { method: "POST", body: JSON.stringify({ path }) }),
-    get: (absolutePath: string) =>
-      request<GetFileResponseDto>("/files/get", token, { method: "POST", body: JSON.stringify({ absolutePath }) }),
+    download: (absolutePath: string) =>
+      request<DownloadFileResponseDto>("/files/download", token, { method: "POST", body: JSON.stringify({ absolutePath }) }),
+    getTempDownloadUrl: (input: TempDownloadUrlRequestDto) =>
+      request<TempDownloadUrlDto>("/files/temp-download-url", token, { method: "POST", body: JSON.stringify(input) }),
+    getTempUploadUrl: (input: TempUploadUrlRequestDto) =>
+      request<TempUploadUrlDto>("/files/temp-upload-url", token, { method: "POST", body: JSON.stringify(input) }),
     createFolder: (parentPath: string, folderName: string) =>
       request<void>("/files/folder", token, { method: "POST", body: JSON.stringify({ parentPath, folderName }) }),
     createBucket: (accountPath: string, bucketName: string) =>
       request<void>("/files/bucket", token, { method: "POST", body: JSON.stringify({ accountPath, bucketName }) }),
     listAll: (path: string) =>
       request<ListFilesResponseDto>("/files/all", token, { method: "POST", body: JSON.stringify({ path }) }),
-    uploadFile: (absolutePath: string, contentBase64: string, contentType?: string) =>
+    uploadFile: (input: UploadFileDto) =>
       request<void>("/files/upload", token, {
         method: "POST",
-        body: JSON.stringify({ absolutePath, contentBase64, contentType }),
+        body: JSON.stringify(input),
       }),
   };
 }

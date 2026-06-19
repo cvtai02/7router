@@ -42,7 +42,7 @@ export class RunSyncUseCase {
         const path = stack.pop()!;
         if (seen.has(path)) continue;
         seen.add(path);
-        const items = await provider.listSubFolderAndFile(path);
+        const items = await provider.listChildren(path);
         discovered += items.length;
         for (const item of items) {
           // Descend into accounts (provider-level sync), buckets, and folders so

@@ -37,14 +37,18 @@ import { RemoveAccountUseCase } from "./modules/accounts/usecases/remove-account
 import { CreateBucketApi } from "./modules/files/controllers/create-bucket.api";
 import { CreateFolderApi } from "./modules/files/controllers/create-folder.api";
 import { UploadFileApi } from "./modules/files/controllers/upload-file.api";
-import { GetFileApi } from "./modules/files/controllers/get-file.api";
+import { DownloadFileApi } from "./modules/files/controllers/download-file.api";
+import { GetTempDownloadUrlApi } from "./modules/files/controllers/get-temp-download-url.api";
+import { GetTempUploadUrlApi } from "./modules/files/controllers/get-temp-upload-url.api";
 import { ListFilesApi } from "./modules/files/controllers/list-files.api";
 import { ListAllFilesApi } from "./modules/files/controllers/list-all-files.api";
 import { ListAllFilesUseCase } from "./modules/files/usecases/list-all-files.usecase";
 import { CreateBucketUseCase } from "./modules/files/usecases/create-bucket.usecase";
 import { CreateFolderUseCase } from "./modules/files/usecases/create-folder.usecase";
 import { UploadFileUseCase } from "./modules/files/usecases/upload-file.usecase";
-import { GetFileUseCase } from "./modules/files/usecases/get-file.usecase";
+import { DownloadFileUseCase } from "./modules/files/usecases/download-file.usecase";
+import { GetTempDownloadUrlUseCase } from "./modules/files/usecases/get-temp-download-url.usecase";
+import { GetTempUploadUrlUseCase } from "./modules/files/usecases/get-temp-upload-url.usecase";
 import { ListFilesUseCase } from "./modules/files/usecases/list-files.usecase";
 import { GetAccessibleDirectoriesApi } from "./modules/access/controllers/get-accessible-directories.api";
 import { GetAccessibleDirectoriesUseCase } from "./modules/access/usecases/get-accessible-directories.usecase";
@@ -73,7 +77,9 @@ import { RunSyncUseCase } from "./modules/sync/usecases/run-sync.usecase";
     RemoveAccountApi,
     ListFilesApi,
     ListAllFilesApi,
-    GetFileApi,
+    DownloadFileApi,
+    GetTempDownloadUrlApi,
+    GetTempUploadUrlApi,
     CreateFolderApi,
     CreateBucketApi,
     UploadFileApi,
@@ -108,7 +114,9 @@ import { RunSyncUseCase } from "./modules/sync/usecases/run-sync.usecase";
     RemoveAccountUseCase,
     ListFilesUseCase,
     ListAllFilesUseCase,
-    GetFileUseCase,
+    DownloadFileUseCase,
+    GetTempDownloadUrlUseCase,
+    GetTempUploadUrlUseCase,
     CreateFolderUseCase,
     CreateBucketUseCase,
     UploadFileUseCase,

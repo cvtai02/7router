@@ -1,4 +1,15 @@
 import { ProviderName } from "../enums/provider-name.enum";
+import { TempDownloadUrlDto } from "./temp-download-url.dto";
+import { TempDownloadUrlRequestDto } from "./temp-download-url-request.dto";
+import { TempUploadUrlDto } from "./temp-upload-url.dto";
+import { TempUploadUrlRequestDto } from "./temp-upload-url-request.dto";
+import { UploadFileDto } from "./upload-file.dto";
+
+export type { TempDownloadUrlDto } from "./temp-download-url.dto";
+export type { TempDownloadUrlRequestDto } from "./temp-download-url-request.dto";
+export type { TempUploadUrlDto } from "./temp-upload-url.dto";
+export type { TempUploadUrlRequestDto } from "./temp-upload-url-request.dto";
+export type { UploadFileDto } from "./upload-file.dto";
 
 export interface ProviderListItemDto {
   name: string;
@@ -14,18 +25,11 @@ export interface ProviderListItemDto {
   cdnUrl?: string;
 }
 
-export interface ProviderFileDto {
+export interface DownloadFileDto {
   absolutePath: string;
-  providerName: ProviderName;
-  accountName: string;
-  bucketOrRootName: string;
-  keyOrPath: string;
   contentType?: string;
   sizeBytes?: number;
-  // The server does not transfer file bytes. It returns a URL the client uses to
-  // download directly from the provider.
-  cdnUrl?: string;
-  downloadUrl?: string;
+  contentBase64: string;
 }
 
 export interface AddProviderAccountDto {
@@ -41,12 +45,12 @@ export interface RemoveProviderAccountDto {
 
 export interface IProvider {
   readonly providerName: ProviderName;
-  listSubFolderAndFile(currentPath: string): Promise<ProviderListItemDto[]>;
+  listChildren(currentPath: string): Promise<ProviderListItemDto[]>;
   addAccount(input: AddProviderAccountDto): Promise<void>;
   removeAccount(input: RemoveProviderAccountDto): Promise<void>;
-  getFile(absolutePath: string): Promise<ProviderFileDto>;
+  downloadFile(absolutePath: string): Promise<DownloadFileDto>;
+  getTempDownloadUrl(input: TempDownloadUrlRequestDto): Promise<TempDownloadUrlDto>;
+  getTempUploadUrl(input: TempUploadUrlRequestDto): Promise<TempUploadUrlDto>;
   createFolder(parentPath: string, folderName: string): Promise<void>;
-  createBucket(accountPath: string, bucketName: string): Promise<void>;
-  uploadFile(absolutePath: string, contentBase64: string, contentType?: string): Promise<void>;
-  getBucketCdnUrl(bucketPath: string): Promise<string>;
+  uploadFile(input: UploadFileDto): Promise<void>;
 }

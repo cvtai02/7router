@@ -107,7 +107,9 @@ All endpoints use `POST` with a JSON body.
 | Method | Path | Permission | Description |
 |---|---|---|---|
 | `POST` | `/files/list` | read | List files at a path |
-| `POST` | `/files/get` | read | Get file details and content |
+| `POST` | `/files/download` | read | Download file bytes |
+| `POST` | `/files/temp-download-url` | read | Create a temporary direct download URL |
+| `POST` | `/files/temp-upload-url` | write | Create a temporary direct upload URL |
 | `POST` | `/files/upload` | write | Upload a file |
 
 #### List files
@@ -119,20 +121,45 @@ curl -X POST http://localhost:20131/files/list \
   -d '{"path": "CloudflareR2/my-account/my-bucket"}'
 ```
 
-Response includes `cdnUrl` for each item where the provider supports it.
+Response includes synced metadata for each item.
 
-#### Get file
+#### Download file
 
 ```bash
-curl -X POST http://localhost:20131/files/get \
+curl -X POST http://localhost:20131/files/download \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{"absolutePath": "CloudflareR2/my-account/my-bucket/photo.jpg"}'
 ```
 
-Response includes metadata plus a provider download URL. Cloudflare R2 returns
-`downloadUrl` as a short-lived signed URL and keeps `cdnUrl` as the raw provider
-object URL.
+Response includes metadata plus `contentBase64` with the file bytes.
+
+#### Temporary download URL
+
+```bash
+curl -X POST http://localhost:20131/files/temp-download-url \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"absolutePath": "CloudflareR2/my-account/my-bucket/photo.jpg", "expiresInSeconds": 900}'
+```
+
+Response includes a temporary `GET` URL and its expiration timestamp. Cloudflare R2
+uses a presigned object URL; Google Drive uses a Drive media URL with a short-lived
+OAuth access token.
+
+#### Temporary upload URL
+
+```bash
+curl -X POST http://localhost:20131/files/temp-upload-url \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"absolutePath": "CloudflareR2/my-account/my-bucket/photo.jpg", "contentType": "image/jpeg", "expiresInSeconds": 900}'
+```
+
+Response includes a temporary `PUT` URL, required headers, and its expiration timestamp.
+Cloudflare R2 uses a presigned object URL; Google Drive uses a resumable upload
+session URL. Files uploaded through the temporary URL bypass the API server, so
+run sync to refresh local metadata after the direct upload completes.
 
 #### Upload file
 

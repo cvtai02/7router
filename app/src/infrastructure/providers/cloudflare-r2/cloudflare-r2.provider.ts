@@ -2,7 +2,6 @@ import { Injectable } from "@nestjs/common";
 import {
   CreateBucketCommand,
   GetObjectCommand,
-  HeadObjectCommand,
   ListBucketsCommand,
   ListObjectsV2Command,
   PutObjectCommand,
@@ -12,10 +11,15 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { ProviderName } from "../../../core/enums/provider-name.enum";
 import {
   AddProviderAccountDto,
+  DownloadFileDto,
   IProvider,
-  ProviderFileDto,
   ProviderListItemDto,
   RemoveProviderAccountDto,
+  TempDownloadUrlDto,
+  TempDownloadUrlRequestDto,
+  TempUploadUrlDto,
+  TempUploadUrlRequestDto,
+  UploadFileDto,
 } from "../../../core/contracts/provider.contract";
 import { ProviderAbsolutePath } from "../../../core/value-objects/provider-absolute-path";
 import { PrismaService } from "../../database/prisma.service";
@@ -38,7 +42,7 @@ export class CloudflareR2Provider implements IProvider {
     private readonly encryption: CredentialEncryptionService,
   ) {}
 
-  async listSubFolderAndFile(currentPath: string): Promise<ProviderListItemDto[]> {
+  async listChildren(currentPath: string): Promise<ProviderListItemDto[]> {
     const parsed = ProviderAbsolutePath.parse(currentPath);
     if (!parsed.accountName) {
       const accounts = await this.prisma.providerAccount.findMany({
@@ -142,16 +146,15 @@ export class CloudflareR2Provider implements IProvider {
     });
   }
 
-  async createBucket(accountPath: string, bucketName: string): Promise<void> {
-    const parsed = ProviderAbsolutePath.parse(accountPath);
-    if (!parsed.accountName) throw new Error("R2 bucket creation requires an account in the path.");
-    const account = await this.findAccount(parsed.accountName);
-    const client = this.createClient(this.encryption.decrypt<CloudflareR2CredentialsDto>(account.encryptedCredentials));
-    await client.send(new CreateBucketCommand({ Bucket: bucketName }));
-  }
-
   async createFolder(parentPath: string, folderName: string): Promise<void> {
     const parsed = ProviderAbsolutePath.parse(parentPath);
+    if (parsed.providerName === ProviderName.CloudflareR2 && parsed.accountName && !parsed.bucketOrRootName) {
+      const account = await this.findAccount(parsed.accountName);
+      const client = this.createClient(this.encryption.decrypt<CloudflareR2CredentialsDto>(account.encryptedCredentials));
+      await client.send(new CreateBucketCommand({ Bucket: folderName }));
+      return;
+    }
+
     if (!parsed.accountName || !parsed.bucketOrRootName) {
       throw new Error("R2 folder creation requires account and bucket in the path.");
     }
@@ -161,8 +164,8 @@ export class CloudflareR2Provider implements IProvider {
     await client.send(new PutObjectCommand({ Bucket: parsed.bucketOrRootName, Key: key, Body: "" }));
   }
 
-  async uploadFile(absolutePath: string, contentBase64: string, contentType?: string): Promise<void> {
-    const parsed = ProviderAbsolutePath.parse(absolutePath);
+  async uploadFile(input: UploadFileDto): Promise<void> {
+    const parsed = ProviderAbsolutePath.parse(input.absolutePath);
     if (!parsed.accountName || !parsed.bucketOrRootName || !parsed.keyOrPath) {
       throw new Error("R2 upload path must include account, bucket, and key.");
     }
@@ -171,23 +174,12 @@ export class CloudflareR2Provider implements IProvider {
     await client.send(new PutObjectCommand({
       Bucket: parsed.bucketOrRootName,
       Key: parsed.keyOrPath,
-      Body: Buffer.from(contentBase64, "base64"),
-      ContentType: contentType,
+      Body: Buffer.from(input.contentBase64, "base64"),
+      ContentType: input.contentType,
     }));
   }
 
-  async getBucketCdnUrl(bucketPath: string): Promise<string> {
-    const parsed = ProviderAbsolutePath.parse(bucketPath);
-    if (!parsed.accountName || !parsed.bucketOrRootName) {
-      throw new Error("R2 CDN URL requires account and bucket in the path.");
-    }
-    const account = await this.findAccount(parsed.accountName);
-    const credentials = this.encryption.decrypt<CloudflareR2CredentialsDto>(account.encryptedCredentials);
-    const base = credentials.endpoint ?? `https://${credentials.accountId}.r2.cloudflarestorage.com`;
-    return `${base}/${parsed.bucketOrRootName}`;
-  }
-
-  async getFile(absolutePath: string): Promise<ProviderFileDto> {
+  async downloadFile(absolutePath: string): Promise<DownloadFileDto> {
     const parsed = ProviderAbsolutePath.parse(absolutePath);
     if (!parsed.accountName || !parsed.bucketOrRootName || !parsed.keyOrPath) {
       throw new Error("R2 file path must include account, bucket, and key.");
@@ -195,25 +187,65 @@ export class CloudflareR2Provider implements IProvider {
     const account = await this.findAccount(parsed.accountName);
     const credentials = this.encryption.decrypt<CloudflareR2CredentialsDto>(account.encryptedCredentials);
     const client = this.createClient(credentials);
-    // Metadata only. Clients fetch bytes with the short-lived signed download URL.
-    const head = await client.send(new HeadObjectCommand({ Bucket: parsed.bucketOrRootName, Key: parsed.keyOrPath }));
-    const base = credentials.endpoint ?? `https://${credentials.accountId}.r2.cloudflarestorage.com`;
-    const downloadUrl = await getSignedUrl(
-      client,
-      new GetObjectCommand({ Bucket: parsed.bucketOrRootName, Key: parsed.keyOrPath }),
-      { expiresIn: 60 * 15 },
-    );
+    const object = await client.send(new GetObjectCommand({ Bucket: parsed.bucketOrRootName, Key: parsed.keyOrPath }));
+    const bytes = await object.Body?.transformToByteArray();
+    if (!bytes) throw new Error(`R2 file has no body: ${parsed.keyOrPath}`);
 
     return {
       absolutePath: parsed.originalPath,
-      providerName: this.providerName,
-      accountName: parsed.accountName,
-      bucketOrRootName: parsed.bucketOrRootName,
-      keyOrPath: parsed.keyOrPath,
-      contentType: head.ContentType,
-      sizeBytes: head.ContentLength ? Number(head.ContentLength) : undefined,
-      cdnUrl: `${base}/${parsed.bucketOrRootName}/${parsed.keyOrPath}`,
-      downloadUrl,
+      contentType: object.ContentType,
+      sizeBytes: object.ContentLength ? Number(object.ContentLength) : bytes.byteLength,
+      contentBase64: Buffer.from(bytes).toString("base64"),
+    };
+  }
+
+  async getTempDownloadUrl(input: TempDownloadUrlRequestDto): Promise<TempDownloadUrlDto> {
+    const parsed = ProviderAbsolutePath.parse(input.absolutePath);
+    if (!parsed.accountName || !parsed.bucketOrRootName || !parsed.keyOrPath) {
+      throw new Error("R2 temp download URL path must include account, bucket, and key.");
+    }
+    const expiresIn = this.normalizeExpiresInSeconds(input.expiresInSeconds);
+    const account = await this.findAccount(parsed.accountName);
+    const client = this.createClient(this.encryption.decrypt<CloudflareR2CredentialsDto>(account.encryptedCredentials));
+    const url = await getSignedUrl(
+      client,
+      new GetObjectCommand({ Bucket: parsed.bucketOrRootName, Key: parsed.keyOrPath }),
+      { expiresIn },
+    );
+    return {
+      absolutePath: parsed.originalPath,
+      url,
+      method: "GET",
+      expiresAt: this.expiresAt(expiresIn),
+    };
+  }
+
+  async getTempUploadUrl(input: TempUploadUrlRequestDto): Promise<TempUploadUrlDto> {
+    const parsed = ProviderAbsolutePath.parse(input.absolutePath);
+    if (!parsed.accountName || !parsed.bucketOrRootName || !parsed.keyOrPath) {
+      throw new Error("R2 temp upload URL path must include account, bucket, and key.");
+    }
+    const expiresIn = this.normalizeExpiresInSeconds(input.expiresInSeconds);
+    const account = await this.findAccount(parsed.accountName);
+    const client = this.createClient(this.encryption.decrypt<CloudflareR2CredentialsDto>(account.encryptedCredentials));
+    const headers: Record<string, string> = input.contentType
+      ? { "Content-Type": input.contentType }
+      : {};
+    const url = await getSignedUrl(
+      client,
+      new PutObjectCommand({
+        Bucket: parsed.bucketOrRootName,
+        Key: parsed.keyOrPath,
+        ContentType: input.contentType,
+      }),
+      { expiresIn },
+    );
+    return {
+      absolutePath: parsed.originalPath,
+      url,
+      method: "PUT",
+      headers,
+      expiresAt: this.expiresAt(expiresIn),
     };
   }
 
@@ -238,5 +270,15 @@ export class CloudflareR2Provider implements IProvider {
 
   private mask(value: string): string {
     return value.length <= 4 ? "****" : `${value.slice(0, 2)}****${value.slice(-2)}`;
+  }
+
+  private normalizeExpiresInSeconds(value?: number): number {
+    if (value === undefined) return 900;
+    if (!Number.isFinite(value) || value <= 0) throw new Error("expiresInSeconds must be a positive number.");
+    return Math.min(Math.floor(value), 604800);
+  }
+
+  private expiresAt(expiresInSeconds: number): string {
+    return new Date(Date.now() + expiresInSeconds * 1000).toISOString();
   }
 }

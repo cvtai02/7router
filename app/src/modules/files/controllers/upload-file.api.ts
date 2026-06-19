@@ -1,4 +1,5 @@
 import { Body, Controller, HttpCode, Post } from "@nestjs/common";
+import { UploadFileDto } from "../../../core/contracts/provider.contract";
 import { Policy } from "../../auth/policy.decorator";
 import { UploadFileUseCase } from "../usecases/upload-file.usecase";
 
@@ -9,7 +10,7 @@ export class UploadFileApi {
 
   @Post("upload")
   @HttpCode(204)
-  async upload(@Body() body: { absolutePath: string; contentBase64: string; contentType?: string }): Promise<void> {
-    await this.uploadFile.execute(body.absolutePath, body.contentBase64, body.contentType);
+  async upload(@Body() body: UploadFileDto): Promise<void> {
+    await this.uploadFile.execute(body);
   }
 }

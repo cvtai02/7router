@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { ProviderName } from "../../../core/enums/provider-name.enum";
 import { ProviderAbsolutePath } from "../../../core/value-objects/provider-absolute-path";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { ProviderRegistryService } from "../../../infrastructure/providers/provider-registry.service";
@@ -13,7 +14,29 @@ export class CreateFolderUseCase {
   async execute(parentPath: string, folderName: string): Promise<void> {
     const parsed = ProviderAbsolutePath.parse(parentPath);
     await this.providers.resolve(parsed.providerName).createFolder(parsed.originalPath, folderName);
+    if (parsed.providerName === ProviderName.CloudflareR2 && parsed.accountName && !parsed.bucketOrRootName) {
+      await this.persistBucket(parsed, folderName);
+      return;
+    }
+
     await this.persistFolder(parsed, folderName);
+  }
+
+  private async persistBucket(parsed: ReturnType<typeof ProviderAbsolutePath.parse>, bucketName: string): Promise<void> {
+    if (!parsed.accountName || parsed.bucketOrRootName) {
+      throw new Error("Bucket persistence requires an account-level path.");
+    }
+
+    const account = await this.prisma.providerAccount.findFirst({
+      where: { accountName: parsed.accountName, provider: { name: parsed.providerName } },
+    });
+    if (!account) throw new Error(`Provider account not found: ${parsed.accountName}`);
+
+    await this.prisma.storageBucket.upsert({
+      where: { accountId_name: { accountId: account.id, name: bucketName } },
+      update: {},
+      create: { accountId: account.id, name: bucketName },
+    });
   }
 
   private async persistFolder(parsed: ReturnType<typeof ProviderAbsolutePath.parse>, folderName: string): Promise<void> {

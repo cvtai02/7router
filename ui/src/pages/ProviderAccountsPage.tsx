@@ -90,11 +90,10 @@ export function ProviderAccountsPage() {
     Boolean(settings.data?.googleDriveOAuth.clientSecretSet);
 
   const add = useMutation({
-    mutationFn: () =>
-      clients().accounts.addAccount(providerName, {
-        accountName,
-        credentials: buildR2Credentials(r2),
-      }),
+    mutationFn: () => {
+      const credentials = buildR2Credentials(r2);
+      return clients().accounts.addAccount(providerName, { accountName, credentials });
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["accounts", providerName] });
       qc.invalidateQueries({ queryKey: ["providers"] });

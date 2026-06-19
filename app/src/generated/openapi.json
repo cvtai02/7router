@@ -372,9 +372,9 @@
         ]
       }
     },
-    "/files/get": {
+    "/files/download": {
       "post": {
-        "operationId": "GetFileApi_get",
+        "operationId": "DownloadFileApi_download",
         "parameters": [],
         "responses": {
           "201": {
@@ -382,7 +382,35 @@
           }
         },
         "tags": [
-          "GetFileApi"
+          "DownloadFileApi"
+        ]
+      }
+    },
+    "/files/temp-download-url": {
+      "post": {
+        "operationId": "GetTempDownloadUrlApi_get",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "GetTempDownloadUrlApi"
+        ]
+      }
+    },
+    "/files/temp-upload-url": {
+      "post": {
+        "operationId": "GetTempUploadUrlApi_get",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "GetTempUploadUrlApi"
         ]
       }
     },

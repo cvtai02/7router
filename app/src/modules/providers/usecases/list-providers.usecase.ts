@@ -9,11 +9,15 @@ export class ListProvidersUseCase {
 
   async execute(): Promise<ProviderSummaryDto[]> {
     const records = await this.prisma.providerRecord.findMany({ include: { accounts: true } });
+    const displayNames: Record<string, string> = {
+      [ProviderName.CloudflareR2]: "Cloudflare R2",
+      [ProviderName.GoogleDrive]: "Google Drive",
+    };
     return [ProviderName.CloudflareR2, ProviderName.GoogleDrive].map((providerName) => {
       const record = records.find((item) => item.name === providerName);
       return {
         providerName,
-        displayName: providerName === ProviderName.CloudflareR2 ? "Cloudflare R2" : "Google Drive",
+        displayName: displayNames[providerName] ?? providerName,
         enabled: true,
         accountCount: record?.accounts.length ?? 0,
       };
