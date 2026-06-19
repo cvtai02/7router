@@ -1,5 +1,12 @@
-const API_BASE_URL =
-  import.meta.env.VITE_7ROUTER_API_BASE_URL ?? `${window.location.protocol}//${window.location.hostname}:20131`;
+function defaultApiBaseUrl(): string {
+  const localHostnames = new Set(["localhost", "127.0.0.1", "::1"]);
+  if (localHostnames.has(window.location.hostname)) {
+    return `${window.location.protocol}//${window.location.hostname}:20131`;
+  }
+  return "https://7router-api.minfect.com";
+}
+
+export const API_BASE_URL = (import.meta.env.VITE_7ROUTER_API_BASE_URL || defaultApiBaseUrl()).replace(/\/+$/, "");
 const TOKEN_KEY = "7router.accessToken";
 
 export function getStoredToken(): string {

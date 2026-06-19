@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { API_BASE_URL } from "../api/client";
 
-const API_BASE = `${window.location.protocol}//${window.location.hostname}:20131`;
+const API_BASE = API_BASE_URL;
 
 interface UseCaseDef {
   id: string;
