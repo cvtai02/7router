@@ -8,7 +8,12 @@ export class ListSyncRunsUseCase {
   constructor(private readonly prisma: PrismaService) {}
 
   async execute(): Promise<SyncRunDto[]> {
-    const runs = await this.prisma.syncRun.findMany({ orderBy: { startedAt: "desc" }, take: 50 });
+    const supportedProviders = [ProviderName.CloudflareR2, ProviderName.GoogleDrive];
+    const runs = await this.prisma.syncRun.findMany({
+      where: { providerName: { in: supportedProviders } },
+      orderBy: { startedAt: "desc" },
+      take: 50,
+    });
     return runs.map((run) => ({
       syncRunId: run.id,
       absolutePath: run.absolutePath,
@@ -27,4 +32,3 @@ export class ListSyncRunsUseCase {
     }));
   }
 }
-

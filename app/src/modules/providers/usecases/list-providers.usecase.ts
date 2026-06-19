@@ -8,12 +8,16 @@ export class ListProvidersUseCase {
   constructor(private readonly prisma: PrismaService) {}
 
   async execute(): Promise<ProviderSummaryDto[]> {
-    const records = await this.prisma.providerRecord.findMany({ include: { accounts: true } });
+    const supportedProviders = [ProviderName.CloudflareR2, ProviderName.GoogleDrive];
+    const records = await this.prisma.providerRecord.findMany({
+      where: { name: { in: supportedProviders } },
+      include: { accounts: true },
+    });
     const displayNames: Record<string, string> = {
       [ProviderName.CloudflareR2]: "Cloudflare R2",
       [ProviderName.GoogleDrive]: "Google Drive",
     };
-    return [ProviderName.CloudflareR2, ProviderName.GoogleDrive].map((providerName) => {
+    return supportedProviders.map((providerName) => {
       const record = records.find((item) => item.name === providerName);
       return {
         providerName,

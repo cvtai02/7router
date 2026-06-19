@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { ProviderName } from "../../../core/enums/provider-name.enum";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { SyncedFilesResponseDto } from "../dtos/synced-files-response.dto";
 
@@ -8,6 +9,7 @@ export class ListSyncedFilesUseCase {
 
   async execute(query: Record<string, string | undefined>): Promise<SyncedFilesResponseDto> {
     const limit = Math.min(Number(query.limit ?? 50), 100);
+    const supportedProviders = [ProviderName.CloudflareR2, ProviderName.GoogleDrive];
     const rows = await this.prisma.storageKey.findMany({
       where: {
         absolutePath: query.q ? { contains: query.q } : undefined,
@@ -15,7 +17,7 @@ export class ListSyncedFilesUseCase {
           name: query.bucketName,
           account: {
             accountName: query.accountName,
-            provider: query.providerName ? { name: query.providerName as any } : undefined,
+            provider: { name: query.providerName ? (query.providerName as ProviderName) : { in: supportedProviders } },
           },
         },
       },
@@ -44,4 +46,3 @@ export class ListSyncedFilesUseCase {
     };
   }
 }
-
