@@ -23,8 +23,8 @@ export function DashboardPage() {
   const accountCount = providers.data?.reduce((total, p) => total + p.accountCount, 0) ?? 0;
 
   const stats = [
-    { label: "Providers", value: providers.data?.length ?? 0, href: "/providers", color: "text-purple-400" },
-    { label: "Accounts", value: accountCount, href: "/accounts", color: "text-indigo-400" },
+    { label: "Providers", value: providers.data?.length ?? 0, href: "/storage", color: "text-purple-400" },
+    { label: "Accounts", value: accountCount, href: "/storage", color: "text-indigo-400" },
     { label: "Sync Runs", value: runs.data?.length ?? 0, href: "/synced-files", color: "text-cyan-400" },
   ];
 

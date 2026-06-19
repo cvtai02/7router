@@ -1,11 +1,8 @@
 import { NavLink, Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { clearStoredToken, getStoredToken } from "./api/client";
-import { BrowserPage } from "./pages/BrowserPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { LoginPage } from "./pages/LoginPage";
-import { ProviderAccountsPage } from "./pages/ProviderAccountsPage";
-import { ProviderDetailsPage } from "./pages/ProviderDetailsPage";
-import { ProvidersPage } from "./pages/ProvidersPage";
+import { StoragePage } from "./pages/StoragePage";
 import { AccessTokensPage } from "./pages/AccessTokensPage";
 import { SyncedFilesPage } from "./pages/SyncedFilesPage";
 import { UseCasePage } from "./pages/UseCasePage";
@@ -26,26 +23,8 @@ const nav = [
     ),
   },
   {
-    to: "/providers",
-    label: "Providers",
-    icon: (
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M13 10V3L4 14h7v7l9-11h-7z" />
-      </svg>
-    ),
-  },
-  {
-    to: "/accounts",
-    label: "Accounts",
-    icon: (
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-      </svg>
-    ),
-  },
-  {
-    to: "/browser",
-    label: "Browser",
+    to: "/storage",
+    label: "Storage",
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
         <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
@@ -125,10 +104,7 @@ function Shell() {
       <main className="flex-1 overflow-auto">
         <Routes>
           <Route path="/" element={<DashboardPage />} />
-          <Route path="/providers" element={<ProvidersPage />} />
-          <Route path="/providers/:providerName" element={<ProviderDetailsPage />} />
-          <Route path="/accounts" element={<ProviderAccountsPage />} />
-          <Route path="/browser" element={<BrowserPage />} />
+          <Route path="/storage" element={<StoragePage />} />
           <Route path="/synced-files" element={<SyncedFilesPage />} />
           <Route path="/tokens" element={<AccessTokensPage />} />
           <Route path="/use-cases" element={<UseCasePage />} />
