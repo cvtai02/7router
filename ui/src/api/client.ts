@@ -16,6 +16,11 @@ export function clearStoredToken() {
 
 // ---- Domain types ----
 
+export interface HealthResponseDto {
+  status: "ok";
+  timestamp: string;
+}
+
 export type ProviderName = "CloudflareR2" | "GoogleDrive";
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ProviderName = {
@@ -229,6 +234,12 @@ async function request<T>(path: string, token: string, init: RequestInit = {}): 
 
 // ---- Sub-clients ----
 
+function healthClient() {
+  return {
+    getHealth: () => request<HealthResponseDto>("/health", ""),
+  };
+}
+
 function authClient() {
   return {
     checkToken: (accessToken: string) =>
@@ -350,6 +361,7 @@ function settingsClient(token: string) {
 
 export function clients(accessToken = getStoredToken()) {
   return {
+    health: healthClient(),
     auth: authClient(),
     access: accessClient(accessToken),
     providers: providersClient(accessToken),

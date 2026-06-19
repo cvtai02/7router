@@ -60,9 +60,12 @@ import { GetSyncRunUseCase } from "./modules/sync/usecases/get-sync-run.usecase"
 import { ListSyncedFilesUseCase } from "./modules/sync/usecases/list-synced-files.usecase";
 import { ListSyncRunsUseCase } from "./modules/sync/usecases/list-sync-runs.usecase";
 import { RunSyncUseCase } from "./modules/sync/usecases/run-sync.usecase";
+import { GetHealthApi } from "./modules/health/controllers/get-health.api";
+import { GetHealthUseCase } from "./modules/health/usecases/get-health.usecase";
 
 @Module({
   controllers: [
+    GetHealthApi,
     GetAccessibleDirectoriesApi,
     CheckTokenApi,
     GetSettingsApi,
@@ -124,6 +127,7 @@ import { RunSyncUseCase } from "./modules/sync/usecases/run-sync.usecase";
     ListSyncRunsUseCase,
     GetSyncRunUseCase,
     ListSyncedFilesUseCase,
+    GetHealthUseCase,
     Reflector,
     { provide: APP_GUARD, useClass: AccessTokenGuard },
   ],

@@ -102,15 +102,31 @@ Authorization: Bearer <tokenId>.<secret>
 
 ### Endpoints
 
-All endpoints use `POST` with a JSON body.
+Health is public. Protected client file endpoints use bearer authentication.
 
 | Method | Path | Permission | Description |
 |---|---|---|---|
+| `GET` | `/health` | public | Check API health |
 | `POST` | `/files/list` | read | List files at a path |
 | `POST` | `/files/download` | read | Download file bytes |
 | `POST` | `/files/temp-download-url` | read | Create a temporary direct download URL |
 | `POST` | `/files/temp-upload-url` | write | Create a temporary direct upload URL |
 | `POST` | `/files/upload` | write | Upload a file |
+
+#### Health
+
+```bash
+curl http://localhost:20131/health
+```
+
+Response:
+
+```json
+{
+  "status": "ok",
+  "timestamp": "2026-06-19T10:45:00.000Z"
+}
+```
 
 #### List files
 

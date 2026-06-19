@@ -3,6 +3,7 @@
 NestJS backend for `7router`.
 
 - `src/core`: provider enum, shared provider contract, absolute path parser, and access token hashing. Storage adapters create buckets through `createFolder` when the parent path is an account-level path such as `CloudflareR2/<account>`, and expose temporary upload/download URL methods where supported.
+- `src/modules/health`: public `GET /health` API health check.
 - `src/infrastructure/settings`: DB-backed system config (provider flags, feature flags, Google Drive OAuth config) and DB-backed access token management. Bootstrap settings (system secret, encryption key) come from env vars.
 - `src/infrastructure/database`: Prisma context. Seeds provider records and default AppSettings on startup.
 - `src/infrastructure/encryption`: AES-256-GCM credential encryption; key is `SHA-256(ENCRYPTION_KEY)` from the `ENCRYPTION_KEY` env var.
