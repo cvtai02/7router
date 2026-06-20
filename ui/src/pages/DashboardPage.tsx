@@ -25,7 +25,7 @@ export function DashboardPage() {
   const stats = [
     { label: "Providers", value: providers.data?.length ?? 0, href: "/storage", color: "text-purple-400" },
     { label: "Accounts", value: accountCount, href: "/storage", color: "text-indigo-400" },
-    { label: "Sync Runs", value: runs.data?.length ?? 0, href: "/synced-files", color: "text-cyan-400" },
+    { label: "Sync Runs", value: runs.data?.length ?? 0, href: "/", color: "text-cyan-400" },
   ];
 
   const recent = (runs.data ?? []).slice(0, 8);
@@ -53,9 +53,9 @@ export function DashboardPage() {
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide">Recent Sync Runs</h2>
-          <Link to="/synced-files" className="text-xs text-indigo-400 hover:text-indigo-300">
-            View all →
-          </Link>
+          <span className="text-xs text-gray-500">
+            Recent activity
+          </span>
         </div>
 
         {recent.length === 0 ? (
