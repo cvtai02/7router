@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common";
-import { ProviderListItemDto } from "../../../core/contracts/provider.contract";
 import { ProviderAbsolutePath } from "../../../core/value-objects/provider-absolute-path";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { ListFilesResponseDto } from "../dtos/list-files-response.dto";
+import { mapStorageKeyToDto } from "../mappers/storage-key.mapper";
 
 @Injectable()
 export class ListAllFilesUseCase {
@@ -17,18 +17,12 @@ export class ListAllFilesUseCase {
       orderBy: { absolutePath: "asc" },
     });
 
-    const items: ProviderListItemDto[] = keys.map((k) => ({
-      name: k.absolutePath.split("/").pop() ?? k.key,
-      absolutePath: k.absolutePath,
-      type: "file",
-      providerName: parsed.providerName,
-      accountName: parsed.accountName,
-      bucketOrRootName: parsed.bucketOrRootName,
-      keyOrPath: k.key || undefined,
-      sizeBytes: k.sizeBytes ?? undefined,
-      contentType: k.contentType ?? undefined,
-      modifiedAt: k.modifiedAt?.toISOString(),
-    }));
+    const items = keys.map((k) =>
+      mapStorageKeyToDto(k, parsed, {
+        name: k.absolutePath.split("/").pop() ?? k.key,
+        type: "file",
+      }),
+    );
 
     return { currentPath: parsed.originalPath, items };
   }

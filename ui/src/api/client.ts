@@ -151,24 +151,6 @@ export interface SyncRunDto extends SyncResponseDto {
   completedAt?: string;
 }
 
-export interface SyncedFileDto {
-  id: string;
-  providerName: ProviderName;
-  accountName: string;
-  bucketName: string;
-  key: string;
-  absolutePath: string;
-  itemType: string;
-  sizeBytes?: number;
-  contentType?: string;
-  modifiedAt?: string;
-  lastSyncedAt: string;
-}
-
-export interface SyncedFilesResponseDto {
-  items: SyncedFileDto[];
-  nextCursor?: string;
-}
 
 export interface TokenPermission {
   path: string;
@@ -324,13 +306,6 @@ function syncClient(token: string) {
       request<SyncResponseDto>("/sync", token, { method: "POST", body: JSON.stringify({ absolutePath }) }),
     listRuns: () => request<SyncRunDto[]>("/sync/runs", token),
     getRun: (syncRunId: string) => request<SyncRunDto>(`/sync/runs/${encodeURIComponent(syncRunId)}`, token),
-    listSyncedFiles: (params: Record<string, string | number | undefined> = {}) => {
-      const qs = Object.entries(params)
-        .filter(([, v]) => v !== undefined)
-        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`)
-        .join("&");
-      return request<SyncedFilesResponseDto>(`/synced-files${qs ? `?${qs}` : ""}`, token);
-    },
   };
 }
 

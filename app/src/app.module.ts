@@ -53,11 +53,9 @@ import { ListFilesUseCase } from "./modules/files/usecases/list-files.usecase";
 import { GetAccessibleDirectoriesApi } from "./modules/access/controllers/get-accessible-directories.api";
 import { GetAccessibleDirectoriesUseCase } from "./modules/access/usecases/get-accessible-directories.usecase";
 import { GetSyncRunApi } from "./modules/sync/controllers/get-sync-run.api";
-import { ListSyncedFilesApi } from "./modules/sync/controllers/list-synced-files.api";
 import { ListSyncRunsApi } from "./modules/sync/controllers/list-sync-runs.api";
 import { RunSyncApi } from "./modules/sync/controllers/run-sync.api";
 import { GetSyncRunUseCase } from "./modules/sync/usecases/get-sync-run.usecase";
-import { ListSyncedFilesUseCase } from "./modules/sync/usecases/list-synced-files.usecase";
 import { ListSyncRunsUseCase } from "./modules/sync/usecases/list-sync-runs.usecase";
 import { RunSyncUseCase } from "./modules/sync/usecases/run-sync.usecase";
 import { GetHealthApi } from "./modules/health/controllers/get-health.api";
@@ -89,7 +87,6 @@ import { GetHealthUseCase } from "./modules/health/usecases/get-health.usecase";
     RunSyncApi,
     ListSyncRunsApi,
     GetSyncRunApi,
-    ListSyncedFilesApi,
   ],
   providers: [
     SettingsService,
@@ -126,7 +123,6 @@ import { GetHealthUseCase } from "./modules/health/usecases/get-health.usecase";
     RunSyncUseCase,
     ListSyncRunsUseCase,
     GetSyncRunUseCase,
-    ListSyncedFilesUseCase,
     GetHealthUseCase,
     Reflector,
     { provide: APP_GUARD, useClass: AccessTokenGuard },

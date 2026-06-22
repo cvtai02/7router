@@ -520,20 +520,6 @@
           "GetSyncRunApi"
         ]
       }
-    },
-    "/synced-files": {
-      "get": {
-        "operationId": "ListSyncedFilesApi_syncedFiles",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "tags": [
-          "ListSyncedFilesApi"
-        ]
-      }
     }
   },
   "info": {

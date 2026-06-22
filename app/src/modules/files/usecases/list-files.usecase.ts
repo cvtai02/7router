@@ -4,6 +4,7 @@ import { ProviderName } from "../../../core/enums/provider-name.enum";
 import { ParsedProviderAbsolutePath, ProviderAbsolutePath } from "../../../core/value-objects/provider-absolute-path";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { ListFilesResponseDto } from "../dtos/list-files-response.dto";
+import { mapStorageKeyToDto } from "../mappers/storage-key.mapper";
 
 @Injectable()
 export class ListFilesUseCase {
@@ -55,21 +56,12 @@ export class ListFilesUseCase {
     });
     const direct = all.filter((k) => !k.absolutePath.slice(prefix.length).includes("/"));
 
-    const items: ProviderListItemDto[] = direct.map((k) => {
-      const name = k.absolutePath.slice(prefix.length).replace(/\/$/, "");
-      return {
-        name,
-        absolutePath: k.absolutePath,
+    const items = direct.map((k) =>
+      mapStorageKeyToDto(k, parsed, {
+        name: k.absolutePath.slice(prefix.length).replace(/\/$/, ""),
         type: k.itemType as ProviderListItemDto["type"],
-        providerName: parsed.providerName,
-        accountName: parsed.accountName,
-        bucketOrRootName: parsed.bucketOrRootName,
-        keyOrPath: k.key || undefined,
-        sizeBytes: k.sizeBytes ?? undefined,
-        contentType: k.contentType ?? undefined,
-        modifiedAt: k.modifiedAt?.toISOString(),
-      };
-    });
+      }),
+    );
 
     return { currentPath, items };
   }
