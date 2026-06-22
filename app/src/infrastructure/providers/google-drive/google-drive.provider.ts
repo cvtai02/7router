@@ -201,20 +201,20 @@ export class GoogleDriveProvider implements IProvider {
     const credentials = await this.findCredentials(parsed.accountName);
     const drive = this.createDrive(credentials);
     const file = await this.resolveFileByPath(drive, parsed.bucketOrRootName, parsed.keyOrPath);
-    const token = await this.getAccessToken(credentials);
-    const expiresIn = this.normalizeExpiresInSeconds(_input.expiresInSeconds);
-    const expiresAt = this.minExpiresAt(expiresIn, token.expiresAt);
-    const params = new URLSearchParams({
-      alt: "media",
-      supportsAllDrives: "true",
-      access_token: token.accessToken,
+
+    await drive.permissions.create({
+      fileId: file.id!,
+      supportsAllDrives: true,
+      requestBody: { role: "reader", type: "anyone" },
     });
+
+    const expiresIn = this.normalizeExpiresInSeconds(_input.expiresInSeconds);
 
     return {
       absolutePath: parsed.originalPath,
-      url: `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(file.id!)}?${params.toString()}`,
+      url: `https://drive.google.com/uc?export=download&id=${encodeURIComponent(file.id!)}`,
       method: "GET",
-      expiresAt,
+      expiresAt: this.expiresAt(expiresIn),
     };
   }
 
