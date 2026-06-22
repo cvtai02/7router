@@ -400,6 +400,37 @@
         ]
       }
     },
+    "/files/stream": {
+      "get": {
+        "operationId": "StreamFileApi_stream",
+        "parameters": [
+          {
+            "name": "path",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "token",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "StreamFileApi"
+        ]
+      }
+    },
     "/files/temp-download-url": {
       "post": {
         "operationId": "GetTempDownloadUrlApi_get",

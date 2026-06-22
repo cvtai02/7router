@@ -6,6 +6,7 @@ import { StoragePage } from "./pages/StoragePage";
 import { AccessTokensPage } from "./pages/AccessTokensPage";
 
 import { UseCasePage } from "./pages/UseCasePage";
+import { ViewPage } from "./pages/ViewPage";
 
 function Protected({ children }: { children: React.ReactNode }) {
   return getStoredToken() ? <>{children}</> : <Navigate to="/login" replace />;
@@ -99,6 +100,7 @@ function Shell() {
 
           <Route path="/tokens" element={<AccessTokensPage />} />
           <Route path="/use-cases" element={<UseCasePage />} />
+          <Route path="/view/*" element={<ViewPage />} />
         </Routes>
       </main>
     </div>

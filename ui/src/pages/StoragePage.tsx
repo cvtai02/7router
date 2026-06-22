@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate as useRouterNavigate, useSearchParams } from "react-router-dom";
 import { clients, ProviderName } from "../api/client";
 import { Icons } from "../components/Icons";
 import { Modal } from "../components/Modal";
@@ -41,6 +41,7 @@ function buildR2Credentials(r2: R2Fields): Record<string, string> {
 
 export function StoragePage() {
   const qc = useQueryClient();
+  const routerNavigate = useRouterNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Navigation
@@ -472,7 +473,7 @@ export function StoragePage() {
                     <tr key={item.absolutePath} className="border-b border-[var(--border)] last:border-0 hover:bg-white/[0.03] group">
                       <td className="px-5 py-3">
                         <button
-                          onClick={() => item.type === "file" ? setFilePath(item.absolutePath) : navigate(item.absolutePath)}
+                          onClick={() => item.type === "file" ? routerNavigate(`/view/${item.absolutePath}`) : navigate(item.absolutePath)}
                           className="flex items-center gap-2 text-indigo-400 hover:text-indigo-300 transition-colors"
                         >
                           <span className="shrink-0 text-gray-500">{item.type === "file" ? Icons.file : Icons.folder}</span>

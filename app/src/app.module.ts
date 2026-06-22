@@ -38,6 +38,7 @@ import { CreateBucketApi } from "./modules/files/controllers/create-bucket.api";
 import { CreateFolderApi } from "./modules/files/controllers/create-folder.api";
 import { UploadFileApi } from "./modules/files/controllers/upload-file.api";
 import { DownloadFileApi } from "./modules/files/controllers/download-file.api";
+import { StreamFileApi } from "./modules/files/controllers/stream-file.api";
 import { GetTempDownloadUrlApi } from "./modules/files/controllers/get-temp-download-url.api";
 import { GetTempUploadUrlApi } from "./modules/files/controllers/get-temp-upload-url.api";
 import { ListFilesApi } from "./modules/files/controllers/list-files.api";
@@ -47,6 +48,7 @@ import { CreateBucketUseCase } from "./modules/files/usecases/create-bucket.usec
 import { CreateFolderUseCase } from "./modules/files/usecases/create-folder.usecase";
 import { UploadFileUseCase } from "./modules/files/usecases/upload-file.usecase";
 import { DownloadFileUseCase } from "./modules/files/usecases/download-file.usecase";
+import { StreamFileUseCase } from "./modules/files/usecases/stream-file.usecase";
 import { GetTempDownloadUrlUseCase } from "./modules/files/usecases/get-temp-download-url.usecase";
 import { GetTempUploadUrlUseCase } from "./modules/files/usecases/get-temp-upload-url.usecase";
 import { ListFilesUseCase } from "./modules/files/usecases/list-files.usecase";
@@ -79,6 +81,7 @@ import { GetHealthUseCase } from "./modules/health/usecases/get-health.usecase";
     ListFilesApi,
     ListAllFilesApi,
     DownloadFileApi,
+    StreamFileApi,
     GetTempDownloadUrlApi,
     GetTempUploadUrlApi,
     CreateFolderApi,
@@ -115,6 +118,7 @@ import { GetHealthUseCase } from "./modules/health/usecases/get-health.usecase";
     ListFilesUseCase,
     ListAllFilesUseCase,
     DownloadFileUseCase,
+    StreamFileUseCase,
     GetTempDownloadUrlUseCase,
     GetTempUploadUrlUseCase,
     CreateFolderUseCase,
